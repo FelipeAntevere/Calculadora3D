@@ -269,7 +269,8 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                         weight: calcInputs.partWeight,
                                         time: calcInputs.printingTime,
                                         powerConsumption: Number((calcInputs.printingTime * calcInputs.printerConsumption).toFixed(3)),
-                                        laborTime: calcInputs.laborTimeSpent
+                                        laborTime: calcInputs.laborTimeSpent,
+                                        materialCost: Number(calcResults.materialCost.toFixed(2))
                                     });
                                 }}
                                 className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-200 active:scale-[0.98]"

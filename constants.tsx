@@ -11,7 +11,7 @@ export const DEFAULT_COSTS_CONFIG: CostsConfig = {
 export const INITIAL_CALC_INPUTS: PricingCalculatorInputs = {
   printingTime: 0,
   partWeight: 0,
-  filamentCostPerKg: 0,
+  filamentCostPerKg: 150,
   filamentLossPercentage: 10,
   printerConsumption: 0.15,
   kWhCost: 0.70,

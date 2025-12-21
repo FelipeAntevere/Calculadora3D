@@ -191,6 +191,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">UF</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Material</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Qtd</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peso</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Total</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
@@ -219,6 +220,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center font-bold text-slate-900">{order.quantity}</td>
+                                        <td className="px-6 py-5 text-center font-bold text-slate-900">{order.weight}g</td>
                                         <td className="px-6 py-5 text-center">
                                             <div className="flex flex-col items-center">
                                                 <span className="text-sm font-bold text-sky-600">{formatCurrency(order.total)}</span>

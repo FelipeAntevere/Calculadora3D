@@ -6,6 +6,7 @@ const Auth: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +20,15 @@ const Auth: React.FC = () => {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signUp({ email, password });
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName
+                        }
+                    }
+                });
                 if (error) throw error;
                 alert('Confirme seu e-mail para ativar sua conta!');
             }
@@ -84,6 +93,23 @@ const Auth: React.FC = () => {
                             </div>
                         </div>
 
+                        {!isLogin && (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm w-5 text-center">Aa</div>
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 focus:border-sky-500/50 transition-all"
+                                        placeholder="Seu nome"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Senha</label>
                             <div className="relative">
@@ -132,8 +158,8 @@ const Auth: React.FC = () => {
                 <p className="mt-12 text-center text-xs font-medium text-slate-400 leading-relaxed max-w-xs mx-auto">
                     Ao continuar, você concorda com nossos <span className="text-slate-600 underline">Termos de Serviço</span> e <span className="text-slate-600 underline">Política de Privacidade</span>.
                 </p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

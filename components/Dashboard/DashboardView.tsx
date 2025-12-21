@@ -39,6 +39,10 @@ interface DashboardViewProps {
     setCompYear: (year: number) => void;
     compMonth: number;
     setCompMonth: (month: number) => void;
+    compStartDate?: string;
+    setCompStartDate?: (date: string) => void;
+    compEndDate?: string;
+    setCompEndDate?: (date: string) => void;
     orders?: any[]; // Making optional for now to avoid breaking while updating App
 }
 
@@ -60,6 +64,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setCompYear,
     compMonth,
     setCompMonth,
+    compStartDate,
+    setCompStartDate,
+    compEndDate,
+    setCompEndDate,
     orders = []
 }) => {
     const current = metrics.current;
@@ -155,6 +163,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onYearChange={setCompYear}
                 onMonthChange={setCompMonth}
                 availableYears={years}
+                compStartDate={compStartDate}
+                setCompStartDate={setCompStartDate}
+                compEndDate={compEndDate}
+                setCompEndDate={setCompEndDate}
+                variations={variations}
             />
 
             {/* Stats Grid */}

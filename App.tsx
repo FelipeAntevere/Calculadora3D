@@ -116,10 +116,12 @@ const App: React.FC = () => {
   const [isComparing, setIsComparing] = useState(false);
   const [compYear, setCompYear] = useState(currentMonth === 0 ? currentYear - 1 : currentYear);
   const [compMonth, setCompMonth] = useState(currentMonth === 0 ? 11 : currentMonth - 1);
+  const [compStartDate, setCompStartDate] = useState('');
+  const [compEndDate, setCompEndDate] = useState('');
 
-  // Derive proper CostsConfig from calculator inputs
+  // Create configuration object for dashboard calculations
   const costsConfig = {
-    materialPricePerGram: calcInputs.filamentCostPerKg / 1000,
+    materialPricePerGram: ((calcInputs.filamentCostPerKg || 150) / 1000) * (1 + calcInputs.filamentLossPercentage / 100),
     energyPricePerKWh: calcInputs.kWhCost,
     laborPricePerHour: calcInputs.laborHourValue,
     depreciationPricePerHour: calcInputs.maintenancePerHour
@@ -133,6 +135,8 @@ const App: React.FC = () => {
     dashboardScope,
     isComparing ? compYear : undefined,
     isComparing ? compMonth : undefined,
+    isComparing ? compStartDate : undefined,
+    isComparing ? compEndDate : undefined,
     costsConfig
   );
 
@@ -221,6 +225,19 @@ const App: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Temporary: Auto-update user profile name
+  useEffect(() => {
+    if (user && user.email === 'anteverefelipe92@gmail.com' && user.user_metadata?.full_name !== 'Felipe Viotti Antevere') {
+      supabase.auth.updateUser({
+        data: { full_name: 'Felipe Viotti Antevere' }
+      }).then(({ data }) => {
+        if (data.user) {
+          setUser(data.user); // Force local state update
+        }
+      });
+    }
+  }, [user]);
 
   // Data Loading Effect
   useEffect(() => {
@@ -424,15 +441,18 @@ const App: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-5">
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-[10px] font-black text-slate-300 uppercase underline decoration-sky-500/30 underline-offset-4 tracking-widest leading-none mb-1.5">Perfil Ativo</span>
-              <span className="text-xs font-bold text-slate-500 max-w-[150px] truncate">{user.email}</span>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Perfil Ativo</span>
+              <span className="text-sm font-bold text-slate-600 truncate max-w-[160px]" title={user.email}>
+                {user.user_metadata?.full_name || user.email}
+              </span>
             </div>
             <button
               onClick={handleSignOut}
-              className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-100 hover:bg-rose-50 rounded-2xl transition-all shadow-sm active:scale-95"
+              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              title="Sair"
             >
-              <LogOut size={18} />
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -465,6 +485,10 @@ const App: React.FC = () => {
                 compMonth={compMonth}
 
                 setCompMonth={setCompMonth}
+                compStartDate={compStartDate}
+                setCompStartDate={setCompStartDate}
+                compEndDate={compEndDate}
+                setCompEndDate={setCompEndDate}
                 orders={orders}
               />
             )}
@@ -679,39 +703,41 @@ const App: React.FC = () => {
         year={expenseYearFilter}
       />
 
-      {isSummaryModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsSummaryModalOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-10 pb-6 flex items-center justify-between border-b border-slate-50">
-              <div className="flex items-center gap-4">
-                <FileText className="w-6 h-6 text-sky-500" />
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Cotação Finalizada</h3>
+      {
+        isSummaryModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsSummaryModalOpen(false)}></div>
+            <div className="relative bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="p-10 pb-6 flex items-center justify-between border-b border-slate-50">
+                <div className="flex items-center gap-4">
+                  <FileText className="w-6 h-6 text-sky-500" />
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Cotação Finalizada</h3>
+                </div>
+                <button onClick={() => setIsSummaryModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-2xl transition-colors">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
               </div>
-              <button onClick={() => setIsSummaryModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-2xl transition-colors">
-                <X className="w-6 h-6 text-slate-400" />
-              </button>
-            </div>
-            <div className="p-10">
-              <div className="bg-[#f8fafc] rounded-3xl p-8 font-mono text-sm text-slate-600 whitespace-pre-wrap border border-slate-100 max-h-[400px] overflow-y-auto leading-relaxed">
-                {summaryText}
+              <div className="p-10">
+                <div className="bg-[#f8fafc] rounded-3xl p-8 font-mono text-sm text-slate-600 whitespace-pre-wrap border border-slate-100 max-h-[400px] overflow-y-auto leading-relaxed">
+                  {summaryText}
+                </div>
               </div>
-            </div>
-            <div className="p-10 pt-0">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(summaryText);
-                  alert('Resumo copiado!');
-                }}
-                className="w-full flex items-center justify-center gap-3 py-5 bg-sky-500 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-600 shadow-2xl shadow-sky-200 transition-all active:scale-95"
-              >
-                <Copy size={18} />
-                Copiar Orçamento
-              </button>
+              <div className="p-10 pt-0">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(summaryText);
+                    alert('Resumo copiado!');
+                  }}
+                  className="w-full flex items-center justify-center gap-3 py-5 bg-sky-500 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-600 shadow-2xl shadow-sky-200 transition-all active:scale-95"
+                >
+                  <Copy size={18} />
+                  Copiar Orçamento
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <footer className="max-w-[95rem] mx-auto px-6 text-center mt-20 pb-16 pt-10 border-t border-slate-100">
         <div className="flex flex-col items-center gap-4">
@@ -722,7 +748,7 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

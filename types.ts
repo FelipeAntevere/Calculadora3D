@@ -69,6 +69,7 @@ export interface Order {
   powerConsumption: number;
   laborTime: number;
   shippingDate?: string;
+  materialCost?: number;
 }
 
 export interface CostsConfig {

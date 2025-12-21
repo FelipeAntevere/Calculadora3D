@@ -51,6 +51,8 @@ export const useDashboardStats = (
     scope: 'month' | 'year' | 'all',
     compYear?: number,
     compMonth?: number,
+    compStartDate?: string,
+    compEndDate?: string,
     config: CostsConfig = DEFAULT_COSTS_CONFIG
 ): ComparisonMetrics => {
     return useMemo(() => {
@@ -59,7 +61,8 @@ export const useDashboardStats = (
         const currentMetrics = calculateDashboardMetrics(filteredCurrent, year, month, scope, config);
 
         // If no comparison period is provided, return only current
-        if (compYear === undefined || (scope === 'month' && compMonth === undefined)) {
+        const hasCustomDates = compStartDate && compEndDate;
+        if (!hasCustomDates && (compYear === undefined || (scope === 'month' && compMonth === undefined))) {
             return {
                 current: currentMetrics,
                 comparison: null,
@@ -68,8 +71,27 @@ export const useDashboardStats = (
         }
 
         // Comparison Period
-        const filteredComp = filterOrdersByPeriod(orders, compYear, compMonth || 0, scope);
-        const comparisonMetrics = calculateDashboardMetrics(filteredComp, compYear, compMonth || 0, scope, config);
+        let filteredComp: Order[] = [];
+        let comparisonMetrics: DashboardMetrics;
+
+        if (hasCustomDates) {
+            // Custom Date Range
+            const start = new Date(compStartDate + 'T00:00:00');
+            const end = new Date(compEndDate + 'T23:59:59');
+
+            filteredComp = orders.filter(o => {
+                const d = new Date(o.date);
+                return d >= start && d <= end;
+            });
+
+            // We use scope 'all' to avoid chart processing overhead/mismatch, 
+            // as we only need the totals for comparison
+            comparisonMetrics = calculateDashboardMetrics(filteredComp, 0, 0, 'all', config);
+        } else {
+            // Standard Month/Year Comparison
+            filteredComp = filterOrdersByPeriod(orders, compYear!, compMonth || 0, scope);
+            comparisonMetrics = calculateDashboardMetrics(filteredComp, compYear!, compMonth || 0, scope, config);
+        }
 
         const calculateVariation = (current: number, previous: number) => {
             if (previous === 0) return current > 0 ? 100 : 0;
@@ -88,5 +110,5 @@ export const useDashboardStats = (
                 materialCost: calculateVariation(currentMetrics.costBreakdown.material, comparisonMetrics.costBreakdown.material),
             }
         };
-    }, [orders, year, month, scope, compYear, compMonth, config]);
+    }, [orders, year, month, scope, compYear, compMonth, compStartDate, compEndDate, config]);
 };

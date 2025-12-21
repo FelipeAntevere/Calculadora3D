@@ -87,7 +87,22 @@ export const calculateDashboardMetrics = (
     const tDep = (order.time || 0) * config.depreciationPricePerHour;
     const tTotal = tMat + tEne + tLab + tDep;
 
-    if (tTotal > 0 && orderProductCost > 0) {
+    // Logic to properly distribute costs even if total breakdown is imperfect
+    if (order.materialCost !== undefined && order.materialCost >= 0) {
+      // Exact material cost is known
+      estMaterial += order.materialCost * qty;
+
+      const remainingUnitCost = Math.max(0, order.unitCost - order.materialCost);
+      const remainingOrderCost = remainingUnitCost * qty;
+
+      const tRest = tEne + tLab + tDep;
+      if (tRest > 0 && remainingOrderCost > 0) {
+        estEnergy += (tEne / tRest) * remainingOrderCost;
+        estLabor += (tLab / tRest) * remainingOrderCost;
+        estDepreciation += (tDep / tRest) * remainingOrderCost;
+      }
+    } else if (tTotal > 0 && orderProductCost > 0) {
+      // Fallback to theoretical ratios
       estMaterial += (tMat / tTotal) * orderProductCost;
       estEnergy += (tEne / tTotal) * orderProductCost;
       estLabor += (tLab / tTotal) * orderProductCost;
@@ -197,25 +212,24 @@ export const fetchOrders = async (): Promise<Order[]> => {
       unitCost: o.unit_cost,
       powerConsumption: o.power_consumption,
       laborTime: o.labor_time,
-      shippingDate: o.shipping_date
+      shippingDate: o.shipping_date,
+      materialCost: o.material_cost
     };
   }) as Order[];
 };
 
 export const upsertOrder = async (order: Partial<Order>) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const orderData = {
     ...order,
-    user_id: user.id,
+    // user_id: user.id, // Shared workspace: removed user_id assignment
     piece_name: order.pieceName,
     unit_value: order.unitValue,
     unit_cost: order.unitCost,
     power_consumption: order.powerConsumption,
     labor_time: order.laborTime,
     shipping_date: order.shippingDate || null,
-    date: order.date || null
+    date: order.date || null,
+    material_cost: order.materialCost
   };
 
   // Remove camelCase fields that are now in snake_case
@@ -225,6 +239,7 @@ export const upsertOrder = async (order: Partial<Order>) => {
   delete (orderData as any).powerConsumption;
   delete (orderData as any).laborTime;
   delete (orderData as any).shippingDate;
+  delete (orderData as any).materialCost;
 
   const { data, error } = await supabase
     .from('orders')
@@ -290,12 +305,9 @@ export const fetchFilaments = async (): Promise<Filament[]> => {
 };
 
 export const upsertFilament = async (filament: Partial<Filament>) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const filamentData = {
     ...filament,
-    user_id: user.id,
+    // user_id: user.id,
     initial_weight: filament.initialWeight,
     current_weight: filament.currentWeight,
     cost_per_kg: filament.costPerKg,
@@ -325,13 +337,10 @@ export const upsertFilament = async (filament: Partial<Filament>) => {
 };
 
 export const upsertFilaments = async (filaments: Partial<Filament>[]) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const filamentsData = filaments.map(f => {
     const data = {
       ...f,
-      user_id: user.id,
+      // user_id: user.id,
       initial_weight: f.initialWeight,
       current_weight: f.currentWeight,
       cost_per_kg: f.costPerKg,
@@ -389,12 +398,9 @@ export const fetchParts = async (): Promise<ReplacementPart[]> => {
 };
 
 export const upsertPart = async (part: Partial<ReplacementPart>) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const partData = {
     ...part,
-    user_id: user.id,
+    // user_id: user.id,
     unit_cost: part.unitCost,
     purchase_date: part.purchaseDate || null
   };
@@ -447,12 +453,9 @@ export const fetchExpenses = async (): Promise<Expense[]> => {
 };
 
 export const upsertExpense = async (expense: Partial<Expense>) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const expenseData = {
     ...expense,
-    user_id: user.id,
+    // user_id: user.id,
     due_date: expense.dueDate,
     paid_date: expense.paidDate || null
   };
