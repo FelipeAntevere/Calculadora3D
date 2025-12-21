@@ -1,5 +1,5 @@
 
-import { Order, OrderStatus, CostsConfig, DashboardMetrics, CostBreakdown, DailyData, StateDistribution, Filament, ReplacementPart } from '../types';
+import { Order, OrderStatus, CostsConfig, DashboardMetrics, CostBreakdown, DailyData, StateDistribution, Filament, ReplacementPart, Expense } from '../types';
 import { DEFAULT_COSTS_CONFIG } from '../constants';
 import { supabase } from './supabase';
 
@@ -378,6 +378,64 @@ export const deletePart = async (id: string) => {
 
   if (error) {
     console.error('Error deleting part:', error);
+    throw error;
+  }
+};
+
+
+export const fetchExpenses = async (): Promise<Expense[]> => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .order('due_date', { ascending: true });
+
+  if (error) throw error;
+
+  return (data || []).map(e => ({
+    ...e,
+    dueDate: e.due_date,
+    paidDate: e.paid_date
+  })) as Expense[];
+};
+
+export const upsertExpense = async (expense: Partial<Expense>) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const expenseData = {
+    ...expense,
+    user_id: user.id,
+    due_date: expense.dueDate,
+    paid_date: expense.paidDate || null
+  };
+
+  delete (expenseData as any).dueDate;
+  delete (expenseData as any).paidDate;
+
+  const { data, error } = await supabase
+    .from('expenses')
+    .upsert(expenseData)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    ...data,
+    dueDate: data.due_date,
+    paidDate: data.paid_date
+  } as Expense;
+};
+
+export const deleteExpense = async (id: string) => {
+  console.log('Attempting to delete expense:', id);
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting expense:', error);
     throw error;
   }
 };

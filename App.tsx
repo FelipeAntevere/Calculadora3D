@@ -16,8 +16,10 @@ import {
   fetchOrders, upsertOrder, deleteOrder,
   fetchFilaments, upsertFilament, deleteFilament,
   fetchParts, upsertPart, deletePart,
+  fetchExpenses, upsertExpense, deleteExpense,
   calculateDashboardMetrics, formatCurrency
 } from './services/dataService';
+import { Expense } from './types';
 import StatCard from './components/StatCard';
 import Auth from './components/Auth';
 import { supabase } from './services/supabase';
@@ -102,6 +104,7 @@ const App: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filaments, setFilaments] = useState<Filament[]>([]);
   const [replacementParts, setReplacementParts] = useState<ReplacementPart[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -115,14 +118,16 @@ const App: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [fetchedOrders, fetchedFilaments, fetchedParts] = await Promise.all([
+      const [fetchedOrders, fetchedFilaments, fetchedParts, fetchedExpenses] = await Promise.all([
         fetchOrders(),
         fetchFilaments(),
-        fetchParts()
+        fetchParts(),
+        fetchExpenses()
       ]);
       setOrders(fetchedOrders);
       setFilaments(fetchedFilaments);
       setReplacementParts(fetchedParts);
+      setExpenses(fetchedExpenses);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -361,6 +366,30 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExpense.description || !newExpense.amount) {
+      alert('Preencha a descrição e o valor!');
+      return;
+    }
+
+    try {
+      const savedExpense = await upsertExpense(newExpense);
+
+      if (editingExpenseId) {
+        setExpenses(expenses.map(e => e.id === savedExpense.id ? savedExpense : e));
+      } else {
+        setExpenses([savedExpense, ...expenses]);
+      }
+
+      setIsExpenseModalOpen(false);
+      setNewExpense({ description: '', category: 'Material', amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'Pendente' });
+      setEditingExpenseId(null);
+    } catch (error) {
+      alert('Erro ao salvar conta');
+    }
+  };
+
   const handleEditOrder = (order: Order) => {
     setNewOrder({ ...order });
     setEditingOrderId(order.id);
@@ -385,6 +414,17 @@ const App: React.FC = () => {
         setFilaments(filaments.filter(f => f.id !== id));
       } catch (error) {
         alert('Erro ao excluir filamento');
+      }
+    }
+  };
+
+  const deleteExpenseHandler = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta conta?')) {
+      try {
+        await deleteExpense(id);
+        setExpenses(expenses.filter(e => e.id !== id));
+      } catch (error) {
+        alert('Erro ao excluir conta');
       }
     }
   };
@@ -434,6 +474,9 @@ const App: React.FC = () => {
   const [filterColor, setFilterColor] = useState('');
   const [filterMaterial, setFilterMaterial] = useState('');
   const [newPart, setNewPart] = useState<Partial<ReplacementPart>>({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, purchaseDate: new Date().toISOString().split('T')[0], notes: '' });
+  const [newExpense, setNewExpense] = useState<Partial<Expense>>({ description: '', category: 'Material', amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'Pendente' });
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const handleDuplicateOrder = (order: Order) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -458,6 +501,12 @@ const App: React.FC = () => {
     setNewPart({ ...part });
     setEditingPartId(part.id);
     setIsPartModalOpen(true);
+  };
+
+  const handleEditExpense = (expense: Expense) => {
+    setNewExpense({ ...expense });
+    setEditingExpenseId(expense.id);
+    setIsExpenseModalOpen(true);
   };
 
   const handleSignOut = async () => {
@@ -522,6 +571,10 @@ const App: React.FC = () => {
             <button onClick={() => setActiveTab('parts')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'parts' ? 'bg-white text-[#0ea5e9] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
               <Wrench className="w-3.5 h-3.5" />
               Peças
+            </button>
+            <button onClick={() => setActiveTab('expenses')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'expenses' ? 'bg-white text-[#0ea5e9] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <DollarSign className="w-3.5 h-3.5" />
+              Contas a Pagar
             </button>
           </div>
 
@@ -1120,6 +1173,61 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
+
+
+        {activeTab === 'expenses' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-3xl font-extrabold text-[#0f172a]">Contas a Pagar</h2>
+                <p className="text-slate-500 text-sm font-medium">Gerencie suas despesas e fluxo de caixa.</p>
+              </div>
+              <button onClick={() => { setNewExpense({ description: '', category: 'Material', amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'Pendente' }); setEditingExpenseId(null); setIsExpenseModalOpen(true); }} className="flex items-center gap-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-sky-100 transition-all transform active:scale-95 text-sm">
+                <Plus className="w-5 h-5" />
+                Nova Conta
+              </button>
+            </div>
+
+            <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-50 bg-slate-50/50">
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Descrição</th>
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Categoria</th>
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Vencimento</th>
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Valor</th>
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                      <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {expenses.map((expense) => (
+                      <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4"><span className="text-sm font-bold text-slate-900">{expense.description}</span></td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-600">{expense.category}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-600">{new Date(expense.dueDate).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-slate-900">{formatCurrency(expense.amount)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${expense.status === 'Pago' ? 'bg-emerald-50 text-emerald-600' : expense.status === 'Atrasado' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
+                            {expense.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end items-center gap-2">
+                            <button onClick={() => handleEditExpense(expense)} className="p-2 text-slate-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button>
+                            <button onClick={() => deleteExpenseHandler(expense.id)} className="p-2 text-slate-400 hover:text-rose-500"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {expenses.length === 0 && (<tr><td colSpan={6} className="py-24 text-center text-slate-400 italic">Nenhuma conta cadastrada.</td></tr>)}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {isSummaryModalOpen && (
@@ -1219,6 +1327,34 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      {isExpenseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => { setIsExpenseModalOpen(false); setEditingExpenseId(null); }}></div>
+          <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-8 pt-8 pb-4 flex items-center justify-between"><div className="flex flex-col gap-1"><h3 className="text-xl font-black text-slate-800">{editingExpenseId ? 'Editar' : 'Nova'} Conta</h3></div><button onClick={() => { setIsExpenseModalOpen(false); setEditingExpenseId(null); }} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors"><X className="w-5 h-5 text-slate-400" /></button></div>
+            <div className="p-8 space-y-5">
+              <div><label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Descrição</label><input type="text" value={newExpense.description || ''} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Categoria</label><input type="text" value={newExpense.category || ''} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })} className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium" /></div>
+                <div><label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Valor</label><input type="number" step="0.01" value={newExpense.amount || 0} onChange={(e) => setNewExpense({ ...newExpense, amount: parseFloat(e.target.value) || 0 })} className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Vencimento</label><input type="date" value={newExpense.dueDate || ''} onChange={(e) => setNewExpense({ ...newExpense, dueDate: e.target.value })} className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-600" /></div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Status</label>
+                  <select value={newExpense.status || 'Pendente'} onChange={(e) => setNewExpense({ ...newExpense, status: e.target.value as any })} className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-600">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Pago">Pago</option>
+                    <option value="Atrasado">Atrasado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="px-8 pb-8 flex items-center justify-end gap-3"><button onClick={() => { setIsExpenseModalOpen(false); setEditingExpenseId(null); }} className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50">Cancelar</button><button onClick={handleSaveExpense} className="px-7 py-2.5 bg-[#0ea5e9] text-white rounded-xl text-xs font-bold hover:bg-[#0284c7] shadow-lg shadow-sky-50">Salvar</button></div>
+          </div>
+        </div>
+      )}
+
 
       <footer className="max-w-[95rem] mx-auto px-4 text-center mt-12 pb-12 pt-8 border-t border-slate-100">
         <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">3D Print Flow &bull; Gestão Profissional</p>

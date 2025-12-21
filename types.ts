@@ -28,6 +28,16 @@ export interface ReplacementPart {
   notes?: string;
 }
 
+export interface Expense {
+  id: string;
+  description: string;
+  category: string;
+  amount: number;
+  dueDate: string;
+  status: 'Pendente' | 'Pago' | 'Atrasado';
+  paidDate?: string;
+}
+
 export interface Order {
   id: string;
   date: string;
