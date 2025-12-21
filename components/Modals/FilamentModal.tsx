@@ -111,9 +111,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
                             <input
                                 type="number"
                                 min="1"
-                                value={filamentQuantity}
-                                onChange={(e) => setFilamentQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                value={filamentQuantity || ''}
+                                onChange={(e) => setFilamentQuantity(parseInt(e.target.value) || 0)}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="1"
                             />
                         </div>
                     )}
@@ -124,9 +125,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
                             <input
                                 type="number"
                                 step="0.01"
-                                value={filament.initialWeight || 1}
+                                value={filament.initialWeight || ''}
                                 onChange={(e) => setFilament({ ...filament, initialWeight: parseFloat(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="1.00"
                             />
                         </div>
                         <div>
@@ -134,9 +136,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
                             <input
                                 type="number"
                                 step="0.01"
-                                value={filament.currentWeight || 0}
+                                value={filament.currentWeight || ''}
                                 onChange={(e) => setFilament({ ...filament, currentWeight: parseFloat(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="0.00"
                             />
                             <p className="text-[10px] text-slate-400 font-medium mt-1">Quanto resta no carretel</p>
                         </div>
@@ -148,9 +151,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
                             <input
                                 type="number"
                                 step="0.01"
-                                value={filament.costPerKg || 0}
+                                value={filament.costPerKg || ''}
                                 onChange={(e) => setFilament({ ...filament, costPerKg: parseFloat(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="0.00"
                             />
                         </div>
                         <div>
@@ -158,9 +162,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
                             <input
                                 type="number"
                                 step="0.01"
-                                value={filament.freight || 0}
+                                value={filament.freight || ''}
                                 onChange={(e) => setFilament({ ...filament, freight: parseFloat(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="0.00"
                             />
                             <p className="text-[10px] text-slate-400 font-medium mt-1">Custo de entrega compartilhado</p>
                         </div>

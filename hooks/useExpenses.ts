@@ -63,10 +63,10 @@ export const useExpenses = (user: any) => {
     /**
      * Updates the payment status of an existing expense.
      */
-    const changeExpenseStatus = async (id: string, status: 'Pendente' | 'Pago' | 'Atrasado') => {
+    const changeExpenseStatus = async (id: string, status: 'Pendente' | 'Pago' | 'Atrasado', paidDate?: string) => {
         try {
-            await updateExpenseStatus(id, status);
-            setExpenses(prev => prev.map(e => e.id === id ? { ...e, status } : e));
+            const updated = await updateExpenseStatus(id, status, paidDate);
+            setExpenses(prev => prev.map(e => e.id === id ? updated : e));
         } catch (error) {
             console.error('Error updating expense status:', error);
             throw error;

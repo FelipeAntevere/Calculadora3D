@@ -42,6 +42,14 @@ export interface Expense {
   paidDate?: string;
 }
 
+export interface RecurringExpenseTemplate {
+  id: string;
+  description: string;
+  category: string;
+  defaultDay?: number; // Dia de vencimento padrão (opcional)
+  defaultAmount?: number; // Valor padrão (opcional)
+}
+
 export interface Order {
   id: string;
   date: string;

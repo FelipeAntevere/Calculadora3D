@@ -7,7 +7,7 @@ import { PricingCalculatorInputs } from '../types';
  */
 export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
     const [calcInputs, setCalcInputs] = useState<PricingCalculatorInputs>(() => {
-        const saved = localStorage.getItem('calc_defaults');
+        const saved = localStorage.getItem('calc_defaults_v2');
         return saved ? JSON.parse(saved) : initialInputs;
     });
 
@@ -36,7 +36,7 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
     }, [calcInputs]);
 
     const saveDefaults = () => {
-        localStorage.setItem('calc_defaults', JSON.stringify(calcInputs));
+        localStorage.setItem('calc_defaults_v2', JSON.stringify(calcInputs));
         // Dispatch custom event to notify App.tsx (Dashboard) to update its metrics
         window.dispatchEvent(new CustomEvent('calc_defaults_updated', { detail: calcInputs }));
     };
@@ -53,8 +53,23 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
 
     const clearSavedDefaults = (initialDefaults: PricingCalculatorInputs) => {
         setCalcInputs(initialDefaults);
-        localStorage.removeItem('calc_defaults');
+        localStorage.removeItem('calc_defaults_v2');
         window.dispatchEvent(new CustomEvent('calc_defaults_updated', { detail: initialDefaults }));
+    };
+
+    const loadDefaults = () => {
+        const saved = localStorage.getItem('calc_defaults_v2');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setCalcInputs({ ...initialInputs, ...parsed });
+                return true;
+            } catch (e) {
+                console.error('Failed to parse saved defaults', e);
+                return false;
+            }
+        }
+        return false;
     };
 
     return {
@@ -62,6 +77,7 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
         setCalcInputs,
         calcResults,
         saveDefaults,
+        loadDefaults,
         resetInputs,
         clearSavedDefaults
     };

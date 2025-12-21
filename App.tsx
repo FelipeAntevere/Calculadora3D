@@ -31,6 +31,7 @@ import { useExpenses } from './hooks/useExpenses';
 import { useCalculator } from './hooks/useCalculator';
 import { useExpenseMetrics } from './hooks/useExpenseMetrics';
 import { useDashboardStats } from './hooks/useDashboardStats';
+import { useRecurringExpenses } from './hooks/useRecurringExpenses';
 
 // Components
 import { DashboardView } from './components/Dashboard/DashboardView';
@@ -45,6 +46,7 @@ import { OrderModal } from './components/Modals/OrderModal';
 import { FilamentModal } from './components/Modals/FilamentModal';
 import { PartModal } from './components/Modals/PartModal';
 import { ExpenseModal } from './components/Modals/ExpenseModal';
+import { RecurringExpensesModal } from './components/Modals/RecurringExpensesModal';
 
 // Utils
 import { formatCurrency } from './utils/formatters';
@@ -98,6 +100,7 @@ const App: React.FC = () => {
     setCalcInputs,
     calcResults,
     saveDefaults,
+    loadDefaults,
     resetInputs,
     clearSavedDefaults
   } = useCalculator(INITIAL_CALC_INPUTS);
@@ -163,6 +166,44 @@ const App: React.FC = () => {
 
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [summaryText, setSummaryText] = useState('');
+
+  // Recurring Expenses
+  const { templates, addTemplate, removeTemplate, updateTemplate } = useRecurringExpenses();
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+
+  const handleGenerateRecurringExpenses = async () => {
+    const targetYear = expenseYearFilter;
+    const targetMonth = expenseMonthFilter === -1 ? new Date().getMonth() : expenseMonthFilter;
+
+    // Create expenses
+    const promises = templates.map(template => {
+      const day = template.defaultDay || 1;
+      // Handle day overflow (e.g. Feb 30)
+      const validDate = new Date(targetYear, targetMonth, day);
+      // If month rolled over, set to last day of target month
+      if (validDate.getMonth() !== targetMonth) {
+        validDate.setDate(0);
+      }
+
+      const newExp: Partial<Expense> = {
+        description: template.description,
+        category: template.category,
+        amount: template.defaultAmount || 0,
+        dueDate: validDate.toISOString().split('T')[0],
+        status: 'Pendente'
+      };
+      return saveExpense(newExp);
+    });
+
+    try {
+      await Promise.all(promises);
+      setIsRecurringModalOpen(false);
+      // Ideally show success toast
+    } catch (err) {
+      console.error('Failed to generate recurring expenses', err);
+      alert('Erro ao gerar despesas recorrentes.');
+    }
+  };
 
   // Global Loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -321,6 +362,19 @@ const App: React.FC = () => {
     setIsSummaryModalOpen(true);
   };
 
+  // Calculate Company Cash Balance (Total Paid Orders - Total Paid Expenses)
+  const companyCashBalance = useMemo(() => {
+    const totalRevenue = orders
+      .filter(o => o.status === 'Finalizado' || o.status === 'Entregue')
+      .reduce((acc, curr) => acc + curr.total, 0);
+
+    const totalPaidExpenses = expenses
+      .filter(e => e.status === 'Pago')
+      .reduce((acc, curr) => acc + curr.amount, 0);
+
+    return totalRevenue - totalPaidExpenses;
+  }, [orders, expenses]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-4">
@@ -409,7 +463,9 @@ const App: React.FC = () => {
                 compYear={compYear}
                 setCompYear={setCompYear}
                 compMonth={compMonth}
+
                 setCompMonth={setCompMonth}
+                orders={orders}
               />
             )}
             {activeTab === 'calculator' && (
@@ -418,6 +474,7 @@ const App: React.FC = () => {
                 setCalcInputs={setCalcInputs}
                 calcResults={calcResults}
                 handleSaveDefaults={saveDefaults}
+                handleLoadDefaults={loadDefaults}
                 handleResetInputs={() => resetInputs(INITIAL_CALC_INPUTS)}
                 handleClearSavedDefaults={() => clearSavedDefaults(INITIAL_CALC_INPUTS)}
                 handleGenerateSummary={onGenerateSummary}
@@ -549,6 +606,8 @@ const App: React.FC = () => {
                 }}
                 deleteExpenseHandler={removeExpense}
                 updateExpenseStatusHandler={changeExpenseStatus}
+                onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
+                companyCashBalance={companyCashBalance}
               />
             )}
           </div>
@@ -606,6 +665,18 @@ const App: React.FC = () => {
           await saveExpense(newExpense);
           setIsExpenseModalOpen(false);
         }}
+      />
+
+      <RecurringExpensesModal
+        isOpen={isRecurringModalOpen}
+        onClose={() => setIsRecurringModalOpen(false)}
+        templates={templates}
+        onAddTemplate={addTemplate}
+        onRemoveTemplate={removeTemplate}
+        onUpdateTemplate={updateTemplate}
+        onGenerate={handleGenerateRecurringExpenses}
+        monthName={MONTH_NAMES[expenseMonthFilter === -1 ? new Date().getMonth() : expenseMonthFilter]}
+        year={expenseYearFilter}
       />
 
       {isSummaryModalOpen && (

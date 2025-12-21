@@ -39,6 +39,7 @@ interface DashboardViewProps {
     setCompYear: (year: number) => void;
     compMonth: number;
     setCompMonth: (month: number) => void;
+    orders?: any[]; // Making optional for now to avoid breaking while updating App
 }
 
 /**
@@ -58,7 +59,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     compYear,
     setCompYear,
     compMonth,
-    setCompMonth
+    setCompMonth,
+    orders = []
 }) => {
     const current = metrics.current;
     const variations = metrics.variations;
@@ -72,12 +74,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             : `${compYear}`
         : undefined;
 
+    const getDateRangeLabel = () => {
+        if (dashboardScope === 'all' && orders && orders.length > 0) {
+            const dates = orders.map(o => new Date(o.date).getTime());
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+
+            return (
+                <span className="block text-xs text-sky-500 font-bold mt-1 bg-sky-50 inline-block px-2 py-0.5 rounded-md border border-sky-100">
+                    De {minDate.toLocaleDateString('pt-BR')} até {maxDate.toLocaleDateString('pt-BR')}
+                </span>
+            );
+        }
+        return null;
+    };
+
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500" >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard</h2>
                     <p className="text-slate-500 text-sm font-medium">Visão geral financeira baseada nos pedidos salvos.</p>
+                    {getDateRangeLabel()}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -112,7 +130,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             </select>
                         )}
 
-                        {(dashboardScope === 'month' || (dashboardScope === 'all' && selectedMonth !== -1)) && (
+                        {(dashboardScope === 'month' || dashboardScope === 'all') && (
                             <select
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -140,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             />
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" >
                 <StatCard
                     title="Receita Total"
                     value={formatCurrency(current.totalRevenue)}
@@ -198,10 +216,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     variation={variations ? { value: variations.printingHours, isPositive: variations.printingHours >= 0 } : undefined}
                     comparisonLabel={comparisonLabel}
                 />
-            </div>
+            </div >
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            < div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <TrendingUp size={18} className="text-sky-500" />
@@ -250,42 +268,44 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </ResponsiveContainer>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* State Distribution */}
-            {current.stateDistribution.length > 0 && (
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <h3 className="text-base font-bold text-slate-800 mb-6">Pedidos por Estado</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {current.stateDistribution.map((state) => {
-                            const stateName = BRAZILIAN_STATES.find(s => s.sigla === state.state)?.nome || state.state;
-                            return (
-                                <div key={state.state} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sky-600 shadow-sm border border-slate-100">
-                                            <MapPin size={20} />
+            {
+                current.stateDistribution.length > 0 && (
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <h3 className="text-base font-bold text-slate-800 mb-6">Pedidos por Estado</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {current.stateDistribution.map((state) => {
+                                const stateName = BRAZILIAN_STATES.find(s => s.sigla === state.state)?.nome || state.state;
+                                return (
+                                    <div key={state.state} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sky-600 shadow-sm border border-slate-100">
+                                                <MapPin size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">{stateName}</p>
+                                                <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                                                    <span>{state.orders} pedido(s)</span>
+                                                    <span>•</span>
+                                                    <span className="text-emerald-600">{formatCurrency(state.revenue)}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">{stateName}</p>
-                                            <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-                                                <span>{state.orders} pedido(s)</span>
-                                                <span>•</span>
-                                                <span className="text-emerald-600">{formatCurrency(state.revenue)}</span>
+                                        <div className="text-right pl-2">
+                                            <p className="text-xs font-bold text-slate-800">{state.percentage.toFixed(1)}%</p>
+                                            <div className="w-16 h-1 w-full bg-slate-200 rounded-full mt-1 overflow-hidden">
+                                                <div className="bg-sky-500 h-full" style={{ width: `${state.percentage}%` }}></div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right pl-2">
-                                        <p className="text-xs font-bold text-slate-800">{state.percentage.toFixed(1)}%</p>
-                                        <div className="w-16 h-1 w-full bg-slate-200 rounded-full mt-1 overflow-hidden">
-                                            <div className="bg-sky-500 h-full" style={{ width: `${state.percentage}%` }}></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };

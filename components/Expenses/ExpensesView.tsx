@@ -7,12 +7,14 @@ import {
     Edit2,
     Trash2,
     Wallet,
-    Receipt
+    Receipt,
+    Repeat
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { Expense } from '../../types';
 import { MONTH_NAMES } from '../../constants';
 import { ExpenseSummaryCards } from './ExpenseSummaryCards';
+import { PaymentDateModal } from '../Modals/PaymentDateModal';
 
 interface ExpensesViewProps {
     expenseMetrics: any;
@@ -24,7 +26,9 @@ interface ExpensesViewProps {
     onNewExpense: () => void;
     handleEditExpense: (expense: Expense) => void;
     deleteExpenseHandler: (id: string) => void;
-    updateExpenseStatusHandler: (id: string, status: 'Pendente' | 'Pago' | 'Atrasado') => void;
+    updateExpenseStatusHandler: (id: string, status: 'Pendente' | 'Pago' | 'Atrasado', paidDate?: string) => void;
+    onOpenRecurringModal: () => void;
+    companyCashBalance: number;
 }
 
 /**
@@ -41,10 +45,32 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     onNewExpense,
     handleEditExpense,
     deleteExpenseHandler,
-    updateExpenseStatusHandler
+    updateExpenseStatusHandler,
+    onOpenRecurringModal,
+    companyCashBalance
 }) => {
     const [openExpenseStatusDropdownId, setOpenExpenseStatusDropdownId] = useState<string | null>(null);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [expenseToPay, setExpenseToPay] = useState<Expense | null>(null);
     const currentYear = new Date().getFullYear();
+
+    const handleStatusClick = (expense: Expense, status: 'Pendente' | 'Pago' | 'Atrasado') => {
+        setOpenExpenseStatusDropdownId(null);
+        if (status === 'Pago') {
+            setExpenseToPay(expense);
+            setIsPaymentModalOpen(true);
+        } else {
+            updateExpenseStatusHandler(expense.id, status);
+        }
+    };
+
+    const handlePaymentConfirm = (date: string) => {
+        if (expenseToPay) {
+            updateExpenseStatusHandler(expenseToPay.id, 'Pago', date);
+            setIsPaymentModalOpen(false);
+            setExpenseToPay(null);
+        }
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -53,16 +79,25 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Contas a Pagar</h2>
                     <p className="text-slate-500 text-sm font-medium">Gerencie suas despesas e fluxo de caixa.</p>
                 </div>
-                <button
-                    onClick={onNewExpense}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100"
-                >
-                    <Plus size={20} />
-                    Nova Conta
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={onOpenRecurringModal}
+                        className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                    >
+                        <Repeat size={18} className="text-sky-500" />
+                        Despesas Fixas
+                    </button>
+                    <button
+                        onClick={onNewExpense}
+                        className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100 active:scale-95"
+                    >
+                        <Plus size={20} />
+                        Nova Conta
+                    </button>
+                </div>
             </div>
 
-            <ExpenseSummaryCards metrics={expenseMetrics} />
+            <ExpenseSummaryCards metrics={expenseMetrics} cashBalance={companyCashBalance} />
 
             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
                 <div className="flex items-center gap-2 text-slate-400 mr-2">
@@ -108,26 +143,30 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Nome da Conta</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Categoria</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Vencimento</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Valor</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome da Conta</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Vencimento</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Pagamento</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-100">
                             {filteredExpenses.length > 0 ? (
                                 filteredExpenses.map((expense) => (
-                                    <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-6 py-5 text-center">
-                                            <span className="text-sm font-semibold text-slate-900 uppercase tracking-tight">{expense.description}</span>
+                                    <tr key={expense.id} className="hover:bg-slate-50 transition-colors group">
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="font-bold text-slate-700 text-sm">{expense.description}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="text-xs font-bold text-slate-500 font-mono">
+                                                {formatDate(expense.dueDate)}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">{expense.category}</span>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-semibold text-slate-600 truncate">{formatDate(expense.dueDate)}</p>
+                                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                                {expense.paidDate ? formatDate(expense.paidDate) : '-'}
+                                            </p>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <span className="text-sm font-semibold text-slate-900">{formatCurrency(expense.amount)}</span>
@@ -153,8 +192,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                                                 key={status}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    updateExpenseStatusHandler(expense.id, status as any);
-                                                                    setOpenExpenseStatusDropdownId(null);
+                                                                    handleStatusClick(expense, status as any);
                                                                 }}
                                                                 className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${expense.status === status ? 'bg-sky-50 text-sky-600' : 'text-slate-600 hover:bg-slate-50'
                                                                     }`}
@@ -191,6 +229,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </table>
                 </div>
             </div>
+
+            <PaymentDateModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onConfirm={handlePaymentConfirm}
+                expenseDescription={expenseToPay?.description}
+            />
         </div>
     );
 };

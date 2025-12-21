@@ -152,9 +152,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                             <label className="block text-sm font-bold text-slate-900 mb-2">Quantidade</label>
                             <input
                                 type="number"
-                                value={order.quantity || 1}
+                                value={order.quantity || ''}
                                 onChange={(e) => setOrder({ ...order, quantity: parseInt(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                placeholder="1"
                             />
                         </div>
                         <div className="col-span-1 relative">
@@ -195,9 +196,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 <input
                                     type="number"
                                     step="0.1"
-                                    value={order.weight || 0}
+                                    value={order.weight || ''}
                                     onChange={(e) => setOrder({ ...order, weight: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    placeholder="0"
                                 />
                             </div>
                             <div>
@@ -205,9 +207,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 <input
                                     type="number"
                                     step="0.1"
-                                    value={order.time || 0}
+                                    value={order.time || ''}
                                     onChange={(e) => setOrder({ ...order, time: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    placeholder="0"
                                 />
                             </div>
                             <div>
@@ -215,9 +218,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 <input
                                     type="number"
                                     step="0.01"
-                                    value={order.unitCost || 0}
+                                    value={order.unitCost || ''}
                                     onChange={(e) => setOrder({ ...order, unitCost: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    placeholder="0.00"
                                 />
                             </div>
                             <div>
@@ -225,9 +229,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 <input
                                     type="number"
                                     step="0.01"
-                                    value={order.unitValue || 0}
+                                    value={order.unitValue || ''}
                                     onChange={(e) => setOrder({ ...order, unitValue: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    placeholder="0.00"
                                 />
                             </div>
                             <div>
@@ -235,9 +240,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 <input
                                     type="number"
                                     step="0.01"
-                                    value={order.freight || 0}
+                                    value={order.freight || ''}
                                     onChange={(e) => setOrder({ ...order, freight: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    placeholder="0.00"
                                 />
                             </div>
                         </div>

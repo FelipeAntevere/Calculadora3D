@@ -79,9 +79,10 @@ export const PartModal: React.FC<PartModalProps> = ({
                             <input
                                 type="number"
                                 min="0"
-                                value={part.quantity || 0}
+                                value={part.quantity || ''}
                                 onChange={(e) => setPart({ ...part, quantity: parseInt(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700"
+                                placeholder="0"
                             />
                         </div>
                     </div>
@@ -92,9 +93,10 @@ export const PartModal: React.FC<PartModalProps> = ({
                             <input
                                 type="number"
                                 step="0.01"
-                                value={part.unitCost || 0}
+                                value={part.unitCost || ''}
                                 onChange={(e) => setPart({ ...part, unitCost: parseFloat(e.target.value) || 0 })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700"
+                                placeholder="0.00"
                             />
                         </div>
                         <div>

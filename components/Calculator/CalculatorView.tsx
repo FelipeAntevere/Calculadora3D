@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Save,
     RefreshCw,
+    Download,
     FileText,
     Clock,
     Zap,
@@ -11,7 +12,8 @@ import {
     DollarSign,
     Plus,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    CheckCircle2
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { PricingCalculatorInputs, Order } from '../../types';
@@ -21,6 +23,7 @@ interface CalculatorViewProps {
     setCalcInputs: (inputs: PricingCalculatorInputs) => void;
     calcResults: any;
     handleSaveDefaults: () => void;
+    handleLoadDefaults: () => boolean;
     handleResetInputs: () => void;
     handleClearSavedDefaults: () => void;
     handleGenerateSummary: () => void;
@@ -37,6 +40,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
     setCalcInputs,
     calcResults,
     handleSaveDefaults,
+    handleLoadDefaults,
     handleResetInputs,
     handleClearSavedDefaults,
     handleGenerateSummary,
@@ -49,6 +53,37 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
         labor: true,
         machine: true
     });
+
+    const [savedNotification, setSavedNotification] = useState<{ show: boolean; message: string; subtext: string } | null>(null);
+
+    const onSaveDefaults = () => {
+        handleSaveDefaults();
+
+        setSavedNotification({
+            show: true,
+            message: "Padrão Atualizado!",
+            subtext: `Salvo: Filamento (R$ ${calcInputs.filamentCostPerKg}), Energia (${calcInputs.printerConsumption}kWh/R$ ${calcInputs.kWhCost}), Mão de Obra (R$ ${calcInputs.laborHourValue}/h), Fixo (R$ ${calcInputs.fixedMonthlyCosts}), Lucro (${calcInputs.profitMargin}%), Manutenção (R$ ${calcInputs.maintenanceBudget}/${calcInputs.printerLifespan}h), Perda (${calcInputs.filamentLossPercentage}%), Horas Prod. (${calcInputs.productiveHoursMonth}h).`
+        });
+    };
+
+    const onLoadDefaults = () => {
+        const success = handleLoadDefaults();
+        if (success) {
+            setSavedNotification({
+                show: true,
+                message: "Configurações Restauradas!",
+                subtext: "Todos os campos foram preenchidos com os valores do seu último salvamento."
+            });
+        } else {
+            setSavedNotification({
+                show: true,
+                message: "Nenhum Padrão Encontrado",
+                subtext: "Você ainda não salvou nenhuma configuração padrão neste navegador."
+            });
+            // Auto close error after 3s since it's less critical/positive
+            setTimeout(() => setSavedNotification(null), 3000);
+        }
+    };
 
     const toggleSection = (section: keyof typeof expandedSections) => {
         setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -63,11 +98,19 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={handleSaveDefaults}
+                        onClick={onSaveDefaults}
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
                     >
                         <Save className="w-4 h-4" />
                         Salvar Padrão
+                    </button>
+                    <button
+                        onClick={onLoadDefaults}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-sky-600 hover:bg-sky-50 transition-all border-sky-100"
+                        title="Carrega as últimas configurações salvas"
+                    >
+                        <RefreshCw className="w-4 h-4 transform rotate-180" />
+                        Carregar Salvo
                     </button>
                     <button
                         onClick={handleResetInputs}
@@ -77,14 +120,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         <RefreshCw className="w-4 h-4" />
                         Limpar Dados
                     </button>
-                    <button
-                        onClick={handleClearSavedDefaults}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all border-rose-100"
-                        title="Reseta todas as configurações para o padrão de fábrica"
-                    >
-                        <Wrench className="w-4 h-4" />
-                        Resetar Tudo
-                    </button>
+
                     <button onClick={handleGenerateSummary} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
                         <FileText className="w-4 h-4" />
                         Gerar Resumo
@@ -103,10 +139,10 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         {expandedSections.piece && (
                             <div className="px-6 pb-8 grid grid-cols-2 gap-6 animate-in slide-in-from-top-2 duration-200">
                                 <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Tempo de impressão (horas)</label>
-                                    <input type="number" value={calcInputs.printingTime} onChange={(e) => setCalcInputs({ ...calcInputs, printingTime: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (calcInputs.printingTime === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} />
+                                    <input type="number" value={calcInputs.printingTime || ''} onChange={(e) => setCalcInputs({ ...calcInputs, printingTime: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (calcInputs.printingTime === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0" />
                                 </div>
                                 <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Peso da peça (gramas)</label>
-                                    <input type="number" value={calcInputs.partWeight} onChange={(e) => setCalcInputs({ ...calcInputs, partWeight: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (calcInputs.partWeight === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} />
+                                    <input type="number" value={calcInputs.partWeight || ''} onChange={(e) => setCalcInputs({ ...calcInputs, partWeight: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (calcInputs.partWeight === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0" />
                                 </div>
                             </div>
                         )}
@@ -122,10 +158,10 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                             <div className="px-6 pb-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo do filamento por kg</label>
-                                        <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={calcInputs.filamentCostPerKg} onChange={(e) => setCalcInputs({ ...calcInputs, filamentCostPerKg: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.filamentCostPerKg === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div>
+                                        <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={calcInputs.filamentCostPerKg || ''} onChange={(e) => setCalcInputs({ ...calcInputs, filamentCostPerKg: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.filamentCostPerKg === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.00" /></div>
                                     </div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Consumo da impressora (kWh/h)</label><input type="number" step="0.01" value={calcInputs.printerConsumption} onChange={(e) => setCalcInputs({ ...calcInputs, printerConsumption: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.printerConsumption === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo do kWh</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" step="0.01" value={calcInputs.kWhCost} onChange={(e) => setCalcInputs({ ...calcInputs, kWhCost: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.kWhCost === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Consumo da impressora (kWh/h)</label><input type="number" step="0.01" value={calcInputs.printerConsumption || ''} onChange={(e) => setCalcInputs({ ...calcInputs, printerConsumption: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.printerConsumption === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.15" /></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo do kWh</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" step="0.01" value={calcInputs.kWhCost || ''} onChange={(e) => setCalcInputs({ ...calcInputs, kWhCost: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (calcInputs.kWhCost === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.70" /></div></div>
                                 </div>
                                 <div>
                                     <div className="flex items-center justify-between mb-2"><label className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider text-[10px]"><Percent className="w-3 h-3" /> Perda de Filamento</label><span className="text-xs font-black text-sky-500">{calcInputs.filamentLossPercentage}%</span></div>
@@ -148,18 +184,18 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                         <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Valor da sua hora de trabalho</label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span>
-                                            <input type="number" value={calcInputs.laborHourValue} onChange={(e) => setCalcInputs({ ...calcInputs, laborHourValue: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.laborHourValue === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} />
+                                            <input type="number" value={calcInputs.laborHourValue || ''} onChange={(e) => setCalcInputs({ ...calcInputs, laborHourValue: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.laborHourValue === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.00" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas de trabalho manual</label>
                                         <div className="relative">
                                             <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                            <input type="number" step="0.1" value={calcInputs.laborTimeSpent} onChange={(e) => setCalcInputs({ ...calcInputs, laborTimeSpent: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.laborTimeSpent === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} />
+                                            <input type="number" step="0.1" value={calcInputs.laborTimeSpent || ''} onChange={(e) => setCalcInputs({ ...calcInputs, laborTimeSpent: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.laborTimeSpent === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0" />
                                         </div>
                                     </div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custos fixos mensais</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={calcInputs.fixedMonthlyCosts} onChange={(e) => setCalcInputs({ ...calcInputs, fixedMonthlyCosts: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.fixedMonthlyCosts === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div></div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas produtivas no mês</label><input type="number" value={calcInputs.productiveHoursMonth} onChange={(e) => setCalcInputs({ ...calcInputs, productiveHoursMonth: parseFloat(e.target.value) || 1 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.productiveHoursMonth === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custos fixos mensais</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={calcInputs.fixedMonthlyCosts || ''} onChange={(e) => setCalcInputs({ ...calcInputs, fixedMonthlyCosts: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.fixedMonthlyCosts === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.00" /></div></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas produtivas no mês</label><input type="number" value={calcInputs.productiveHoursMonth || ''} onChange={(e) => setCalcInputs({ ...calcInputs, productiveHoursMonth: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (calcInputs.productiveHoursMonth === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="160" /></div>
                                 </div>
                                 <div>
                                     <div className="flex items-center justify-between mb-2"><label className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider text-[10px]"><Percent className="w-3 h-3" /> Margem de Lucro</label><span className="text-xs font-black text-sky-500">{calcInputs.profitMargin}%</span></div>
@@ -178,8 +214,8 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         {expandedSections.machine && (
                             <div className="px-6 pb-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Vida útil da máquina (horas)</label><div className="relative"><Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /><input type="number" value={calcInputs.printerLifespan} onChange={(e) => setCalcInputs({ ...calcInputs, printerLifespan: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/10 ` + (calcInputs.printerLifespan === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div></div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Orçamento manutenção (R$)</label><div className="relative"><DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /><input type="number" step="0.01" value={calcInputs.maintenanceBudget} onChange={(e) => setCalcInputs({ ...calcInputs, maintenanceBudget: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/10 ` + (calcInputs.maintenanceBudget === 0 ? 'text-rose-600 font-bold' : 'text-slate-700')} /></div></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Vida útil da máquina (horas)</label><div className="relative"><Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /><input type="number" value={calcInputs.printerLifespan || ''} onChange={(e) => setCalcInputs({ ...calcInputs, printerLifespan: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/10 ` + (calcInputs.printerLifespan === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="2000" /></div></div>
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Orçamento manutenção (R$)</label><div className="relative"><DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /><input type="number" step="0.01" value={calcInputs.maintenanceBudget || ''} onChange={(e) => setCalcInputs({ ...calcInputs, maintenanceBudget: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/10 ` + (calcInputs.maintenanceBudget === 0 ? 'text-slate-400 font-normal' : 'text-slate-700')} placeholder="0.00" /></div></div>
                                 </div>
                                 <div className="p-4 bg-rose-50/30 rounded-xl border border-rose-50"><p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Custo de Manutenção / Hora</p><p className="text-xl font-black text-rose-600">{formatCurrency(calcResults.hourlyMaintenanceRate)}</p></div>
                             </div>
@@ -209,19 +245,19 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                             ))}
                         </div>
 
-                        <div className="pt-8 border-t border-slate-50 space-y-6">
+                        <div className="pt-6 border-t border-slate-100 space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Custo de Produção</span>
-                                <span className="text-2xl font-black text-slate-900">{formatCurrency(calcResults.subtotal)}</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Custo Prod.</span>
+                                <span className="text-lg font-bold text-slate-700">{formatCurrency(calcResults.subtotal)}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Margem ({calcInputs.profitMargin}%)</span>
-                                <span className="text-lg font-black text-emerald-500">+ {formatCurrency(calcResults.profit)}</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Margem ({calcInputs.profitMargin}%)</span>
+                                <span className="text-lg font-bold text-emerald-600">+ {formatCurrency(calcResults.profit)}</span>
                             </div>
 
-                            <div className="bg-emerald-500 rounded-3xl p-8 flex flex-col items-center justify-center gap-2 transform transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-200">
-                                <span className="text-xs font-black text-emerald-100 uppercase tracking-[0.3em]">Preço Final Sugerido</span>
-                                <span className="text-5xl font-black text-white">{formatCurrency(calcResults.total)}</span>
+                            <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100 flex flex-col items-center justify-center gap-1 mt-4 group transition-all hover:border-emerald-200 hover:shadow-sm hover:shadow-emerald-100/50">
+                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">Preço Final Sugerido</span>
+                                <span className="text-4xl font-black text-emerald-600 tracking-tight">{formatCurrency(calcResults.total)}</span>
                             </div>
 
                             <button
@@ -236,15 +272,38 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                         laborTime: calcInputs.laborTimeSpent
                                     });
                                 }}
-                                className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-200"
+                                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-200 active:scale-[0.98]"
                             >
-                                <Plus size={20} />
+                                <Plus size={18} />
                                 Adicionar aos Pedidos
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+            {/* Notification Toast */}
+            {savedNotification && (
+                <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-right-10 fade-in duration-300">
+                    <div className="bg-emerald-500 text-white p-4 rounded-2xl shadow-2xl shadow-emerald-200 flex items-start gap-4 max-w-md border border-emerald-400/50">
+                        <div className="bg-white/20 p-2 rounded-xl mt-0.5">
+                            <CheckCircle2 className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h4 className="font-black text-lg tracking-tight">{savedNotification.message}</h4>
+                            <p className="text-emerald-50 text-xs font-medium mt-1 leading-relaxed opacity-90">{savedNotification.subtext}</p>
+                            <div className="mt-2 text-[10px] font-bold text-emerald-100 uppercase tracking-widest bg-emerald-600/30 w-fit px-2 py-1 rounded-lg">
+                                Aplicado à Calculadora e Dashboard
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setSavedNotification(null)}
+                            className="px-4 py-2 bg-white text-emerald-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-50 transition-colors shadow-sm ml-2"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

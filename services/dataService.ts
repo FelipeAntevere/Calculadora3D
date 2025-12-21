@@ -488,14 +488,28 @@ export const deleteExpense = async (id: string) => {
   }
 };
 
-export const updateExpenseStatus = async (id: string, status: string) => {
+export const updateExpenseStatus = async (id: string, status: string, paidDate?: string) => {
+  const updateData: any = { status };
+
+  if (status === 'Pago' && paidDate) {
+    updateData.paid_date = paidDate;
+  } else if (status !== 'Pago') {
+    // If returning to pending/late, maybe clear the paid date?
+    // Let's decide to clear it if status is not Paid
+    updateData.paid_date = null;
+  }
+
   const { data, error } = await supabase
     .from('expenses')
-    .update({ status })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single();
 
   if (error) throw error;
-  return data as Expense;
+  return {
+    ...data,
+    dueDate: data.due_date,
+    paidDate: data.paid_date
+  } as Expense;
 };

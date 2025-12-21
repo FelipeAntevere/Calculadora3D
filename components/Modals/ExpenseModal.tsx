@@ -23,6 +23,19 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
     editingExpenseId,
     onSave
 }) => {
+    const formatInitialValue = (val?: number) => {
+        if (!val) return '';
+        return val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    };
+
+    const [localAmount, setLocalAmount] = React.useState(formatInitialValue(expense.amount));
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setLocalAmount(formatInitialValue(expense.amount));
+        }
+    }, [isOpen, editingExpenseId]); // Reset when opening or switching expense context
+
     if (!isOpen) return null;
 
     return (
@@ -63,24 +76,37 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Categoria</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Material"
-                                    value={expense.category || ''}
-                                    onChange={(e) => setExpense({ ...expense, category: e.target.value })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700 placeholder:text-slate-400"
-                                    required
-                                />
+                                <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Status</label>
+                                <select
+                                    value={expense.status || 'Pendente'}
+                                    onChange={(e) => setExpense({ ...expense, status: e.target.value as any })}
+                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m3%205%203%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat"
+                                >
+                                    <option value="Pendente">PENDENTE</option>
+                                    <option value="Pago">PAGO</option>
+                                    <option value="Atrasado">ATRASADO</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Valor (R$)</label>
                                 <input
-                                    type="number"
-                                    step="0.01"
+                                    type="text"
+                                    inputMode="numeric"
                                     placeholder="0,00"
-                                    value={expense.amount || 0}
-                                    onChange={(e) => setExpense({ ...expense, amount: parseFloat(e.target.value) || 0 })}
+                                    value={localAmount}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        const digits = value.replace(/\D/g, '');
+                                        const realValue = Number(digits) / 100;
+
+                                        if (digits === '') {
+                                            setLocalAmount('');
+                                            setExpense({ ...expense, amount: 0 });
+                                        } else {
+                                            setLocalAmount(realValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                            setExpense({ ...expense, amount: realValue });
+                                        }
+                                    }}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700"
                                     required
                                 />
@@ -99,16 +125,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Status</label>
-                                <select
-                                    value={expense.status || 'Pendente'}
-                                    onChange={(e) => setExpense({ ...expense, status: e.target.value as any })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m3%205%203%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat"
-                                >
-                                    <option value="Pendente">PENDENTE</option>
-                                    <option value="Pago">PAGO</option>
-                                    <option value="Atrasado">ATRASADO</option>
-                                </select>
+                                <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Data Pagamento</label>
+                                <input
+                                    type="date"
+                                    value={expense.paidDate || ''}
+                                    onChange={(e) => setExpense({ ...expense, paidDate: e.target.value })}
+                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-600"
+                                    disabled={expense.status !== 'Pago'}
+                                />
                             </div>
                         </div>
                     </div>

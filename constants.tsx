@@ -11,18 +11,18 @@ export const DEFAULT_COSTS_CONFIG: CostsConfig = {
 export const INITIAL_CALC_INPUTS: PricingCalculatorInputs = {
   printingTime: 0,
   partWeight: 0,
-  filamentCostPerKg: 150,
+  filamentCostPerKg: 0,
   filamentLossPercentage: 10,
   printerConsumption: 0.15,
-  kWhCost: 0.85,
-  laborHourValue: 35.00,
+  kWhCost: 0.70,
+  laborHourValue: 2,
   laborTimeSpent: 0,
-  printerLifespan: 5000,
-  maintenanceBudget: 1500,
-  maintenancePerHour: 0.30,
-  fixedMonthlyCosts: 300,
-  productiveHoursMonth: 500,
-  profitMargin: 100
+  printerLifespan: 3000,
+  maintenanceBudget: 1000,
+  maintenancePerHour: 0.33,
+  fixedMonthlyCosts: 200,
+  productiveHoursMonth: 720,
+  profitMargin: 50
 };
 
 export const EMPTY_ORDER: Partial<Order> = {
