@@ -435,6 +435,18 @@ const App: React.FC = () => {
   const [filterMaterial, setFilterMaterial] = useState('');
   const [newPart, setNewPart] = useState<Partial<ReplacementPart>>({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, purchaseDate: new Date().toISOString().split('T')[0], notes: '' });
 
+  const handleDuplicateOrder = (order: Order) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...orderData } = order;
+    setNewOrder({
+      ...orderData,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Orçamento'
+    });
+    setEditingOrderId(null);
+    setIsOrderModalOpen(true);
+  };
+
   const handleEditFilament = (filament: Filament) => {
     setNewFilament({ ...filament });
     setFilamentQuantity(1);
@@ -634,14 +646,14 @@ const App: React.FC = () => {
 
             {/* State Distribution */}
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-800 mb-6">Melhores Estados (Top 5)</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-6">Melhores Estados (Top 10)</h3>
               {metrics.stateDistribution && metrics.stateDistribution.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  {metrics.stateDistribution.slice(0, 5).map((item, index) => (
+                  {metrics.stateDistribution.slice(0, 10).map((item, index) => (
                     <div key={item.state} className="bg-slate-50 rounded-xl p-4 border border-slate-100 relative overflow-hidden">
                       <div className="flex justify-between items-start z-10 relative">
                         <div>
-                          <span className="text-2xl font-black text-slate-800 block mb-1">{item.state}</span>
+                          <span className="text-2xl font-black text-slate-800 block mb-1">{BRAZILIAN_STATES.find(s => s.sigla === item.state)?.nome || item.state}</span>
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{item.orders} pedidos</span>
                         </div>
                         <div className={`text-xs font-bold px-2 py-1 rounded-lg ${index === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>
@@ -956,6 +968,7 @@ const App: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end items-center gap-2">
+                              <button onClick={() => handleDuplicateOrder(order)} className="p-2 text-slate-400 hover:text-sky-500 transition-colors" title="Duplicar Pedido"><Copy className="w-4 h-4" /></button>
                               <button onClick={() => handleEditOrder(order)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
                               <button onClick={() => deleteOrderHandler(order.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
                             </div>
@@ -1025,13 +1038,13 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-50 bg-slate-50/50">
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[20%] text-left">Filamento</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[10%] text-center">Cor</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[20%] text-center">Estoque</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[15%] text-center">Peso Restante</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[10%] text-center">Data</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[15%] text-center">Custo Total</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[10%] text-right">Ações</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-left">Filamento</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Cor</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Estoque</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Peso Restante</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Data</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Custo Total</th>
+                      <th className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -1039,13 +1052,13 @@ const App: React.FC = () => {
                       const percentage = (filament.currentWeight / filament.initialWeight) * 100;
                       return (
                         <tr key={filament.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 text-left"><div className="flex flex-col"><span className="text-sm font-bold text-slate-900">{filament.brand}</span><span className="text-xs text-slate-400 font-medium">{filament.material}</span></div></td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-600 text-center">{filament.color}</td>
-                          <td className="px-6 py-4"><div className="flex flex-col gap-1.5 mx-auto max-w-[200px]"><div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all duration-500 ` + getProgressColor(percentage)} style={{ width: percentage + "%" }}></div></div><span className="text-[10px] font-bold text-slate-400 text-center">{Math.round(percentage)}%</span></div></td>
-                          <td className="px-6 py-4 text-sm font-bold text-slate-900 text-center">{filament.currentWeight.toFixed(2)} / {filament.initialWeight.toFixed(1)} kg</td>
-                          <td className="px-6 py-4 text-sm font-medium text-slate-600 text-center">{filament.purchaseDate ? new Date(filament.purchaseDate + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</td>
-                          <td className="px-6 py-4 text-center"><div className="flex flex-col"><span className="text-sm font-bold text-slate-900">{formatCurrency(filament.costPerKg + filament.freight)}</span><span className="text-[10px] text-slate-400">({formatCurrency(filament.costPerKg)}/kg + {formatCurrency(filament.freight)} Frete)</span></div></td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-4 py-2 text-left"><div className="flex flex-col"><span className="text-sm font-bold text-slate-900">{filament.brand}</span><span className="text-xs text-slate-400 font-medium">{filament.material}</span></div></td>
+                          <td className="px-4 py-2 text-sm font-medium text-slate-600 text-center">{filament.color}</td>
+                          <td className="px-4 py-2"><div className="flex flex-col gap-1.5 mx-auto max-w-[200px]"><div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all duration-500 ` + getProgressColor(percentage)} style={{ width: percentage + "%" }}></div></div><span className="text-[10px] font-bold text-slate-400 text-center">{Math.round(percentage)}%</span></div></td>
+                          <td className="px-4 py-2 text-sm font-bold text-slate-900 text-center">{filament.currentWeight.toFixed(2)} / {filament.initialWeight.toFixed(1)} kg</td>
+                          <td className="px-4 py-2 text-sm font-medium text-slate-600 text-center">{filament.purchaseDate ? new Date(filament.purchaseDate + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</td>
+                          <td className="px-4 py-2 text-center"><div className="flex flex-col"><span className="text-sm font-bold text-slate-900">{formatCurrency(filament.costPerKg + filament.freight)}</span><span className="text-[10px] text-slate-400">({formatCurrency(filament.costPerKg)}/kg + {formatCurrency(filament.freight)} Frete)</span></div></td>
+                          <td className="px-4 py-2 text-right">
                             <div className="flex justify-end items-center gap-2">
                               <button onClick={() => handleEditFilament(filament)} className="p-2 text-slate-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button>
                               <button onClick={() => deleteFilamentHandler(filament.id)} className="p-2 text-slate-400 hover:text-rose-500"><Trash2 className="w-4 h-4" /></button>
