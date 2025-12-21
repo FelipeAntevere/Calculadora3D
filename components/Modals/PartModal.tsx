@@ -36,7 +36,7 @@ export const PartModal: React.FC<PartModalProps> = ({
             <div className="relative bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="px-8 pt-8 pb-4 flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                        <h3 className="text-xl font-black text-slate-800">
+                        <h3 className="text-xl font-bold text-slate-800">
                             {editingPartId ? 'Editar Peça' : 'Nova Peça'}
                         </h3>
                         <p className="text-slate-400 text-xs font-medium">Controle seu estoque de componentes.</p>
@@ -66,7 +66,7 @@ export const PartModal: React.FC<PartModalProps> = ({
                             <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Categoria</label>
                             <select
                                 value={part.category || 'Outros'}
-                                onChange={(e) => setOrder({ ...part, category: e.target.value as PartCategory })}
+                                onChange={(e) => setPart({ ...part, category: e.target.value as PartCategory })}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-600 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m3%205%203%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat"
                             >
                                 {categoryOptions.map(cat => (
@@ -98,15 +98,25 @@ export const PartModal: React.FC<PartModalProps> = ({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Marca (Opcional)</label>
+                            <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Data da Compra</label>
                             <input
-                                type="text"
-                                placeholder="Ex: Trianglelab"
-                                value={part.brand || ''}
-                                onChange={(e) => setPart({ ...part, brand: e.target.value })}
-                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700 placeholder:text-slate-400"
+                                type="date"
+                                value={part.purchaseDate || ''}
+                                onChange={(e) => setPart({ ...part, purchaseDate: e.target.value })}
+                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700"
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-900 mb-2 uppercase tracking-tight">Marca (Opcional)</label>
+                        <input
+                            type="text"
+                            placeholder="Ex: Trianglelab"
+                            value={part.brand || ''}
+                            onChange={(e) => setPart({ ...part, brand: e.target.value })}
+                            className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 outline-none font-medium text-slate-700 placeholder:text-slate-400"
+                        />
                     </div>
 
                     <div>
@@ -130,7 +140,7 @@ export const PartModal: React.FC<PartModalProps> = ({
                     </button>
                     <button
                         onClick={onSave}
-                        className="px-7 py-2.5 bg-[#0ea5e9] text-white rounded-xl text-xs font-black hover:bg-[#0284c7] shadow-lg shadow-sky-100 transition-all active:scale-95"
+                        className="px-7 py-2.5 bg-[#0ea5e9] text-white rounded-xl text-xs font-bold hover:bg-[#0284c7] shadow-lg shadow-sky-100 transition-all active:scale-95"
                     >
                         {editingPartId ? 'Salvar Alterações' : 'Salvar Peça'}
                     </button>

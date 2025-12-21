@@ -50,7 +50,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <h2 className="text-3xl font-extrabold text-[#0f172a] tracking-tight">Contas a Pagar</h2>
+                    <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Contas a Pagar</h2>
                     <p className="text-slate-500 text-sm font-medium">Gerencie suas despesas e fluxo de caixa.</p>
                 </div>
                 <button
@@ -108,12 +108,12 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Nome da Conta</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Categoria</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Vencimento</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Valor</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Nome da Conta</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Categoria</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Vencimento</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Valor</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -121,16 +121,16 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                 filteredExpenses.map((expense) => (
                                     <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-sm font-black text-slate-900 uppercase tracking-tight">{expense.description}</span>
+                                            <span className="text-sm font-semibold text-slate-900 uppercase tracking-tight">{expense.description}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">{expense.category}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-bold text-slate-600 truncate">{formatDate(expense.dueDate)}</p>
+                                            <p className="text-sm font-semibold text-slate-600 truncate">{formatDate(expense.dueDate)}</p>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-sm font-black text-slate-900">{formatCurrency(expense.amount)}</span>
+                                            <span className="text-sm font-semibold text-slate-900">{formatCurrency(expense.amount)}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>

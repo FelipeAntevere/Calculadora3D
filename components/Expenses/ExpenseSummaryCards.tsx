@@ -23,7 +23,7 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total de Contas</p>
-                    <p className="text-2xl font-black text-slate-900">{metrics.total}</p>
+                    <p className="text-2xl font-bold text-slate-900">{metrics.total}</p>
                     <p className="text-xs text-slate-500 font-medium">
                         {formatCurrency(metrics.totalAmount)}
                     </p>
@@ -39,7 +39,7 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pagas</p>
-                    <p className="text-2xl font-black text-emerald-600">{metrics.paidCount}</p>
+                    <p className="text-2xl font-bold text-emerald-600">{metrics.paidCount}</p>
                     <p className="text-xs text-emerald-600 font-medium">
                         {formatCurrency(metrics.paidAmount)}
                     </p>
@@ -55,7 +55,7 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pendentes</p>
-                    <p className="text-2xl font-black text-amber-600">{metrics.pendingCount}</p>
+                    <p className="text-2xl font-bold text-amber-600">{metrics.pendingCount}</p>
                     <p className="text-xs text-amber-600 font-medium">
                         {formatCurrency(metrics.pendingAmount)}
                     </p>
@@ -71,7 +71,7 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Atrasadas</p>
-                    <p className="text-2xl font-black text-rose-600">{metrics.overdueCount}</p>
+                    <p className="text-2xl font-bold text-rose-600">{metrics.overdueCount}</p>
                     <p className="text-xs text-rose-600 font-medium">
                         {formatCurrency(metrics.overdueAmount)}
                     </p>

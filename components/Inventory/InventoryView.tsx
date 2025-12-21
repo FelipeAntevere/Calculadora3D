@@ -68,7 +68,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <h2 className="text-3xl font-extrabold text-[#0f172a] tracking-tight">Estoque de Filamento</h2>
+                    <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Estoque de Filamento</h2>
                     <p className="text-slate-500 text-sm font-medium">Gerencie seu inventário de materiais e acompanhe custos.</p>
                 </div>
                 <button
@@ -84,8 +84,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-sky-100 transition-all">
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total de Itens</p>
-                        <h3 className="text-3xl font-black text-slate-900">{totalItems} <span className="text-sm text-slate-400 font-bold capitalize">Carretéis</span></h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Total de Itens</p>
+                        <h3 className="text-3xl font-bold text-slate-900">{totalItems} <span className="text-sm text-slate-400 font-bold capitalize">Carretéis</span></h3>
                     </div>
                     <div className="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform">
                         <Database size={28} />
@@ -94,8 +94,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
                 <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-100 transition-all">
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Peso Total em Estoque</p>
-                        <h3 className="text-3xl font-black text-slate-900">{totalKg.toFixed(2)} <span className="text-sm text-slate-400 font-bold capitalize">kg</span></h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Peso Total em Estoque</p>
+                        <h3 className="text-3xl font-bold text-slate-900">{totalKg.toFixed(2)} <span className="text-sm text-slate-400 font-bold capitalize">kg</span></h3>
                     </div>
                     <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                         <Layers size={28} />
@@ -134,13 +134,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Filamento</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Cor</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Estoque</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Peso Restante</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Data Compra</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Custo Total</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Filamento</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Cor</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Estoque</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peso Restante</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Data Compra</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Custo Total</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -151,8 +151,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                                         <tr key={filament.id} className="hover:bg-slate-50/50 transition-colors group">
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-sm font-black text-slate-900">{filament.brand}</span>
-                                                    <span className="text-[10px] text-sky-500 font-black uppercase tracking-widest mt-0.5">{filament.material}</span>
+                                                    <span className="text-sm font-semibold text-slate-900">{filament.brand}</span>
+                                                    <span className="text-[10px] text-sky-500 font-bold uppercase tracking-widest mt-0.5">{filament.material}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-sm font-bold text-slate-600 text-center">
@@ -172,11 +172,11 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                                                             style={{ width: `${percentage}%` }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-[10px] font-black text-slate-400 text-right uppercase tracking-widest">{Math.round(percentage)}% disponível</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 text-right uppercase tracking-widest">{Math.round(percentage)}% disponível</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-center">
-                                                <p className="text-sm font-black text-slate-900">
+                                                <p className="text-sm font-semibold text-slate-900">
                                                     {filament.currentWeight.toFixed(2)} <span className="text-[10px] text-slate-400 font-medium">/ {filament.initialWeight.toFixed(1)} kg</span>
                                                 </p>
                                             </td>
@@ -187,7 +187,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                                             </td>
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-black text-slate-900">{formatCurrency(filament.costPerKg + filament.freight)}</span>
+                                                    <span className="text-sm font-semibold text-slate-900">{formatCurrency(filament.costPerKg + filament.freight)}</span>
                                                     <span className="text-[10px] text-slate-400 font-medium italic">({formatCurrency(filament.costPerKg)}/kg + {formatCurrency(filament.freight)} Frete)</span>
                                                 </div>
                                             </td>

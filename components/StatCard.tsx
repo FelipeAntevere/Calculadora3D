@@ -38,10 +38,10 @@ const StatCard: React.FC<StatCardProps> = ({
 
       <div className="space-y-1">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <p className={`text-2xl font-black ${valueColorClass}`}>{value}</p>
+          <p className={`text-2xl font-bold ${valueColorClass}`}>{value}</p>
           {variation && (
             <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${variation.isNeutral ? 'bg-slate-100 text-slate-500' :
-                variation.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+              variation.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
               }`}>
               {variation.isNeutral ? <Minus size={10} /> : variation.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
               {variation.value.toFixed(1)}%

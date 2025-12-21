@@ -516,6 +516,16 @@ const App: React.FC = () => {
                   setEditingPartId(p.id);
                   setIsPartModalOpen(true);
                 }}
+                duplicatePartHandler={(p) => {
+                  const { id, created_at, user_id, ...partData } = p;
+                  setNewPart({
+                    ...partData,
+                    name: `${partData.name} (Cópia)`,
+                    purchaseDate: new Date().toISOString().split('T')[0]
+                  } as any);
+                  setEditingPartId(null);
+                  setIsPartModalOpen(true);
+                }}
                 deletePartHandler={removePart}
               />
             )}
