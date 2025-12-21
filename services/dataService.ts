@@ -260,6 +260,18 @@ export const deleteOrder = async (id: string) => {
   }
 };
 
+export const updateOrderStatus = async (id: string, status: OrderStatus) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Order;
+};
+
 export const fetchFilaments = async (): Promise<Filament[]> => {
   const { data, error } = await supabase
     .from('filaments')
@@ -310,6 +322,42 @@ export const upsertFilament = async (filament: Partial<Filament>) => {
     costPerKg: data.cost_per_kg,
     purchaseDate: data.purchase_date
   } as Filament;
+};
+
+export const upsertFilaments = async (filaments: Partial<Filament>[]) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const filamentsData = filaments.map(f => {
+    const data = {
+      ...f,
+      user_id: user.id,
+      initial_weight: f.initialWeight,
+      current_weight: f.currentWeight,
+      cost_per_kg: f.costPerKg,
+      purchase_date: f.purchaseDate
+    };
+    delete (data as any).initialWeight;
+    delete (data as any).currentWeight;
+    delete (data as any).costPerKg;
+    delete (data as any).purchaseDate;
+    return data;
+  });
+
+  const { data, error } = await supabase
+    .from('filaments')
+    .upsert(filamentsData)
+    .select();
+
+  if (error) throw error;
+
+  return (data || []).map(f => ({
+    ...f,
+    initialWeight: f.initial_weight,
+    currentWeight: f.current_weight,
+    costPerKg: f.cost_per_kg,
+    purchaseDate: f.purchase_date
+  })) as Filament[];
 };
 
 export const deleteFilament = async (id: string) => {
@@ -438,4 +486,16 @@ export const deleteExpense = async (id: string) => {
     console.error('Error deleting expense:', error);
     throw error;
   }
+};
+
+export const updateExpenseStatus = async (id: string, status: string) => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Expense;
 };

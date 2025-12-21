@@ -1,11 +1,47 @@
 
-import { Order, CostsConfig } from './types';
+import { Order, CostsConfig, PricingCalculatorInputs } from './types';
 
 export const DEFAULT_COSTS_CONFIG: CostsConfig = {
   materialPricePerGram: 0.15, // R$ 0,15 por grama (ex: R$ 150/kg)
   energyPricePerKWh: 0.85,    // R$ 0,85 por kWh
   laborPricePerHour: 35.00,   // R$ 35,00 por hora técnica
   depreciationPricePerHour: 2.50 // R$ 2,50 por hora de uso da máquina
+};
+
+export const INITIAL_CALC_INPUTS: PricingCalculatorInputs = {
+  printingTime: 0,
+  partWeight: 0,
+  filamentCostPerKg: 150,
+  filamentLossPercentage: 10,
+  printerConsumption: 0.15,
+  kWhCost: 0.85,
+  laborHourValue: 35.00,
+  laborTimeSpent: 0,
+  printerLifespan: 5000,
+  maintenanceBudget: 1500,
+  maintenancePerHour: 0.30,
+  fixedMonthlyCosts: 300,
+  productiveHoursMonth: 500,
+  profitMargin: 100
+};
+
+export const EMPTY_ORDER: Partial<Order> = {
+  customer: '',
+  pieceName: '',
+  material: '',
+  color: '',
+  state: '',
+  status: undefined,
+  quantity: 1,
+  unitValue: 0,
+  unitCost: 0,
+  time: 0,
+  freight: 0,
+  powerConsumption: 0,
+  laborTime: 0,
+  weight: 0,
+  shippingDate: '',
+  date: new Date().toISOString().split('T')[0]
 };
 
 export const MONTH_NAMES = [

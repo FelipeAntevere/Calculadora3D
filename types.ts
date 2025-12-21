@@ -15,6 +15,8 @@ export interface Filament {
   costPerKg: number;
   freight: number;
   purchaseDate?: string; // YYYY-MM-DD
+  created_at?: string;
+  user_id?: string;
 }
 
 export interface ReplacementPart {
@@ -26,6 +28,8 @@ export interface ReplacementPart {
   unitCost: number;
   purchaseDate: string;
   notes?: string;
+  created_at?: string;
+  user_id?: string;
 }
 
 export interface Expense {
