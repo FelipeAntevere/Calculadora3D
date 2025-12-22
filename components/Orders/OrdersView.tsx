@@ -317,7 +317,10 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                 </div>
             ) : (
                 <KanbanBoard
-                    orders={filteredOrdersList}
+                    orders={statusFilter === 'Todos'
+                        ? filteredOrdersList.filter(o => o.status !== 'Entregue' && o.status !== 'Cancelado')
+                        : filteredOrdersList
+                    }
                     statusOptions={statusOptions}
                     onDragEnd={handleDragEnd}
                     onCardClick={handleEditOrder}

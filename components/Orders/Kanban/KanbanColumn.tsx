@@ -54,6 +54,12 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, orders, onCa
                                 index={index}
                                 onClick={onCardClick}
                                 onDelete={onDelete}
+                                dateField={
+                                    status === 'Produção' ? 'productionDate' :
+                                        status === 'Finalizado' ? 'completionDate' :
+                                            status === 'Entregue' ? 'deliveryDate' :
+                                                'date'
+                                }
                             />
                         ))}
                         {provided.placeholder}

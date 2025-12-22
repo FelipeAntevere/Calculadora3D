@@ -11,7 +11,15 @@ interface KanbanCardProps {
     onDelete: (id: string) => void;
 }
 
-export const KanbanCard: React.FC<KanbanCardProps> = ({ order, index, onClick, onDelete }) => {
+export const KanbanCard: React.FC<KanbanCardProps & { dateField?: keyof Order }> = ({ order, index, onClick, onDelete }) => {
+    // Timeline steps configuration
+    const steps = [
+        { label: 'Pedido', date: order.date, active: true, color: 'text-yellow-500' },
+        { label: 'Produção', date: order.productionDate, active: !!order.productionDate, color: 'text-sky-500' },
+        { label: 'Finalizado', date: order.completionDate, active: !!order.completionDate, color: 'text-emerald-500' },
+        { label: 'Entregue', date: order.deliveryDate, active: !!order.deliveryDate, color: 'text-indigo-500' }
+    ];
+
     return (
         <Draggable draggableId={order.id} index={index}>
             {(provided, snapshot) => (
@@ -40,8 +48,23 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ order, index, onClick, o
                                 </p>
                             </div>
                             <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
-                                {formatDateTime(order.date)}
+                                #{order.id.slice(0, 4)}
                             </span>
+                        </div>
+
+                        {/* Timeline Section */}
+                        <div className="flex flex-col gap-1 py-2 border-t border-b border-slate-50">
+                            {steps.map((step, i) => (
+                                <div key={i} className={`flex justify-between items-center text-[10px] ${step.active ? 'opacity-100' : 'opacity-30'}`}>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${step.active ? step.color.replace('text-', 'bg-') : 'bg-slate-300'}`}></div>
+                                        <span className={`font-semibold ${step.active ? 'text-slate-600' : 'text-slate-400'}`}>{step.label}</span>
+                                    </div>
+                                    <span className="font-mono text-slate-500">
+                                        {step.date ? formatDateTime(step.date) : '-'}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 mt-1">
@@ -55,7 +78,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ order, index, onClick, o
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                        <div className="flex items-center justify-between pt-2">
                             <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
                                 <Clock size={12} />
                                 <span>{order.quantity} un.</span>

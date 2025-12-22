@@ -65,8 +65,8 @@ export const useOrders = (user: any) => {
      */
     const changeOrderStatus = async (id: string, status: OrderStatus) => {
         try {
-            await updateOrderStatus(id, status);
-            setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+            const updatedOrder = await updateOrderStatus(id, status);
+            setOrders(prev => prev.map(o => o.id === id ? updatedOrder : o));
         } catch (error) {
             console.error('Error updating order status:', error);
             throw error;
@@ -77,7 +77,8 @@ export const useOrders = (user: any) => {
      * Duplicates an existing order.
      */
     const duplicateOrder = async (order: Order) => {
-        const { id, created_at, user_id, ...orderData } = order;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, ...orderData } = order as any;
         return await saveOrder({
             ...orderData,
             customer: `${orderData.customer} (Cópia)`,

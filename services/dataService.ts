@@ -213,7 +213,10 @@ export const fetchOrders = async (): Promise<Order[]> => {
       powerConsumption: o.power_consumption,
       laborTime: o.labor_time,
       shippingDate: o.shipping_date,
-      materialCost: o.material_cost
+      materialCost: o.material_cost,
+      productionDate: o.production_date,
+      completionDate: o.completion_date,
+      deliveryDate: o.delivery_date
     };
   }) as Order[];
 };
@@ -229,7 +232,10 @@ export const upsertOrder = async (order: Partial<Order>) => {
     labor_time: order.laborTime,
     shipping_date: order.shippingDate || null,
     date: order.date || null,
-    material_cost: order.materialCost
+    material_cost: order.materialCost,
+    production_date: order.productionDate || null,
+    completion_date: order.completionDate || null,
+    delivery_date: order.deliveryDate || null
   };
 
   // Remove camelCase fields that are now in snake_case
@@ -240,6 +246,9 @@ export const upsertOrder = async (order: Partial<Order>) => {
   delete (orderData as any).laborTime;
   delete (orderData as any).shippingDate;
   delete (orderData as any).materialCost;
+  delete (orderData as any).productionDate;
+  delete (orderData as any).completionDate;
+  delete (orderData as any).deliveryDate;
 
   const { data, error } = await supabase
     .from('orders')
@@ -258,7 +267,10 @@ export const upsertOrder = async (order: Partial<Order>) => {
     unitCost: data.unit_cost,
     powerConsumption: data.power_consumption,
     laborTime: data.labor_time,
-    shippingDate: data.shipping_date
+    shippingDate: data.shipping_date,
+    productionDate: data.production_date,
+    completionDate: data.completion_date,
+    deliveryDate: data.delivery_date
   } as Order;
 };
 
@@ -276,15 +288,36 @@ export const deleteOrder = async (id: string) => {
 };
 
 export const updateOrderStatus = async (id: string, status: OrderStatus) => {
+  const updates: any = { status };
+  const now = new Date().toISOString();
+
+  if (status === 'Produção') updates.production_date = now;
+  if (status === 'Finalizado') updates.completion_date = now;
+  if (status === 'Entregue') updates.delivery_date = now;
+
   const { data, error } = await supabase
     .from('orders')
-    .update({ status })
+    .update(updates)
     .eq('id', id)
     .select()
     .single();
 
   if (error) throw error;
-  return data as Order;
+
+  return {
+    ...data,
+    status: data.status as OrderStatus,
+    pieceName: data.piece_name,
+    unitValue: data.unit_value,
+    unitCost: data.unit_cost,
+    powerConsumption: data.power_consumption,
+    laborTime: data.labor_time,
+    shippingDate: data.shipping_date,
+    materialCost: data.material_cost,
+    productionDate: data.production_date,
+    completionDate: data.completion_date,
+    deliveryDate: data.delivery_date
+  } as Order;
 };
 
 export const fetchFilaments = async (): Promise<Filament[]> => {

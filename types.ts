@@ -70,6 +70,9 @@ export interface Order {
   laborTime: number;
   shippingDate?: string;
   materialCost?: number;
+  productionDate?: string;
+  completionDate?: string;
+  deliveryDate?: string;
 }
 
 export interface CostsConfig {
