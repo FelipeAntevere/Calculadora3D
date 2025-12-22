@@ -115,7 +115,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-1">Mês</label>
                         <select
                             value={expenseMonthFilter}
                             onChange={(e) => setExpenseMonthFilter(Number(e.target.value))}
@@ -127,7 +126,6 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-1">Ano</label>
                         <select
                             value={expenseYearFilter}
                             onChange={(e) => setExpenseYearFilter(Number(e.target.value))}
