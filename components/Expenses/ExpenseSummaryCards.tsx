@@ -5,6 +5,8 @@ import { ExpenseMetrics } from '../../hooks/useExpenseMetrics';
 
 interface ExpenseSummaryCardsProps {
     metrics: ExpenseMetrics;
+    onOpenInjectionModal?: () => void;
+    onOpenWithdrawalModal?: () => void;
     cashFlow: {
         revenue: number;
         paidExpenses: number;
@@ -19,27 +21,37 @@ interface ExpenseSummaryCardsProps {
 /**
  * Summary cards showing expense statistics and Cash Flow
  */
-export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metrics, cashFlow }) => {
+export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metrics, onOpenInjectionModal, onOpenWithdrawalModal, cashFlow }) => {
     const projectedBalance = (cashFlow.balance || 0) - (metrics.pendingAmount + metrics.overdueAmount);
+
+    // Dynamic styling
+    const balanceColorClass = cashFlow.balance >= 0
+        ? "bg-gradient-to-br from-[#0ea5e9] to-[#0284c7]"
+        : "bg-gradient-to-br from-[#f43f5e] to-[#be123c]";
+
+    const freeBalanceValue = cashFlow.balance - cashFlow.maintenanceReserve;
+    const freeBalanceColorClass = freeBalanceValue >= 0
+        ? "bg-gradient-to-br from-[#10b981] to-[#059669]"
+        : "bg-gradient-to-br from-[#f43f5e] to-[#be123c]";
 
     return (
         <div className="space-y-4">
             {/* Main Cash Flow Rows */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 {/* 1. Receita (Entradas) */}
-                <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2.5 mb-2">
                                 <div className="p-1.5 bg-emerald-50 rounded-lg">
                                     <TrendingUp className="w-4 h-4 text-emerald-500" />
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entradas (Receita)</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Receita Total</span>
                             </div>
 
                             <div className="flex items-end justify-between gap-2">
                                 <div>
-                                    <p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(cashFlow.revenue)}</p>
+                                    <p className="text-2xl font-black text-slate-800 tracking-tight truncate">{formatCurrency(cashFlow.revenue)}</p>
                                     <p className="text-[10px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
                                         <Check size={10} strokeWidth={3} />
                                         Vendas confirmadas
@@ -52,19 +64,19 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
 
                 {/* 2. Reserva de Manutenção */}
-                <div className="bg-gradient-to-br from-[#f59e0b] to-[#d97706] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                <div className="lg:col-span-2 bg-gradient-to-br from-[#f59e0b] to-[#d97706] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2.5 mb-2">
                                 <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                                     <Wrench className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-bold text-amber-100 uppercase tracking-widest">Manut. Impressora</span>
+                                <span className="text-[10px] font-bold text-amber-100 uppercase tracking-widest">Manutenção da Impressora</span>
                             </div>
 
                             <div className="flex items-end justify-between gap-2">
                                 <div>
-                                    <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(cashFlow.maintenanceReserve)}</p>
+                                    <p className="text-2xl font-black text-white tracking-tight truncate">{formatCurrency(cashFlow.maintenanceReserve)}</p>
                                     <p className="text-[10px] font-bold text-amber-100 mt-1 flex items-center gap-1">
                                         (Retido)
                                     </p>
@@ -75,19 +87,19 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div>
 
                 {/* 3. Saídas (Despesas + Estoque) */}
-                <div className="bg-gradient-to-br from-[#f43f5e] to-[#be123c] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                <div className="lg:col-span-2 bg-gradient-to-br from-[#f43f5e] to-[#be123c] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2.5 mb-2">
                                 <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                                     <TrendingDown className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-bold text-rose-100 uppercase tracking-widest">Saídas Totais</span>
+                                <span className="text-[10px] font-bold text-rose-100 uppercase tracking-widest">Total de Despesas</span>
                             </div>
 
-                            <div className="flex items-end justify-between gap-2">
+                            <div className="flex items-start justify-between gap-2">
                                 <div>
-                                    <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(cashFlow.paidExpenses + cashFlow.inventoryCost)}</p>
+                                    <p className="text-2xl font-black text-white tracking-tight truncate">{formatCurrency(cashFlow.paidExpenses + cashFlow.inventoryCost)}</p>
                                 </div>
 
                                 {/* Breakdown - Compact on Right */}
@@ -111,20 +123,42 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div >
 
                 {/* 3. Total em Conta (Full) */}
-                <div className="bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                <div className={`lg:col-span-3 ${balanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
                     <div className="relative z-10 h-full flex flex-col justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-2.5 mb-2">
-                                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                                    <Wallet className="w-4 h-4 text-white" />
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                                        <Wallet className="w-4 h-4 text-white" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest">Saldo em Conta</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-sky-100 uppercase tracking-widest">Total em Conta</span>
+                                <div className="flex items-center gap-1.5">
+                                    {onOpenInjectionModal && (
+                                        <button
+                                            onClick={onOpenInjectionModal}
+                                            className="p-1.5 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-sm transition-all text-white text-[10px] font-bold uppercase tracking-wider"
+                                            title="Adicionar Aporte"
+                                        >
+                                            <span>+ Aporte</span>
+                                        </button>
+                                    )}
+                                    {onOpenWithdrawalModal && (
+                                        <button
+                                            onClick={onOpenWithdrawalModal}
+                                            className="p-1.5 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm transition-all text-white text-[10px] font-bold uppercase tracking-wider"
+                                            title="Realizar Retirada"
+                                        >
+                                            <span>- Retirar</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex items-end justify-between gap-2">
                                 <div>
-                                    <p className="text-3xl font-black text-white tracking-tight leading-none">{formatCurrency(cashFlow.balance)}</p>
-                                    <p className="text-[10px] font-medium text-sky-100 mt-1.5 opacity-90">Bruto (com reservas)</p>
+                                    <p className="text-2xl font-black text-white tracking-tight leading-none truncate">{formatCurrency(cashFlow.balance)}</p>
+                                    <p className="text-[10px] font-medium text-white/90 mt-1.5 opacity-90">Bruto (com reservas)</p>
                                 </div>
                             </div>
                         </div>
@@ -132,25 +166,25 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                 </div >
 
                 {/* 4. Saldo Livre */}
-                <div className="bg-gradient-to-br from-[#10b981] to-[#059669] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                <div className={`lg:col-span-3 ${freeBalanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
                     <div className="relative z-10 h-full flex flex-col justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2.5 mb-2">
                                 <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                                     <Wallet className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest">Saldo Livre</span>
+                                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest">Saldo Líquido</span>
                             </div>
 
                             <div className="flex items-end justify-between gap-2">
                                 <div>
-                                    <p className="text-3xl font-black text-white tracking-tight leading-none">{formatCurrency(cashFlow.balance - cashFlow.maintenanceReserve)}</p>
-                                    <p className="text-[10px] font-medium text-emerald-100 mt-1.5 opacity-90">Descontando reserva</p>
+                                    <p className="text-2xl font-black text-white tracking-tight leading-none truncate">{formatCurrency(cashFlow.balance - cashFlow.maintenanceReserve)}</p>
+                                    <p className="text-[10px] font-medium text-white/90 mt-1.5 opacity-90">Descontando reserva</p>
                                 </div>
 
                                 <div className="text-right">
                                     <div className="flex flex-col gap-0.5">
-                                        <p className="text-[9px] font-bold text-emerald-200 uppercase">Previsto</p>
+                                        <p className="text-[9px] font-bold text-white/80 uppercase">Previsto</p>
                                         <span className="text-sm font-bold text-white leading-none">{formatCurrency(projectedBalance - cashFlow.maintenanceReserve)}</span>
                                     </div>
                                 </div>

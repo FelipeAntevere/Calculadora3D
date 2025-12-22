@@ -32,6 +32,7 @@ import { useCalculator } from './hooks/useCalculator';
 import { useExpenseMetrics } from './hooks/useExpenseMetrics';
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { useRecurringExpenses } from './hooks/useRecurringExpenses';
+import { useCapitalInjections } from './hooks/useCapitalInjections';
 
 // Components
 import { DashboardView } from './components/Dashboard/DashboardView';
@@ -47,6 +48,8 @@ import { FilamentModal } from './components/Modals/FilamentModal';
 import { PartModal } from './components/Modals/PartModal';
 import { ExpenseModal } from './components/Modals/ExpenseModal';
 import { RecurringExpensesModal } from './components/Modals/RecurringExpensesModal';
+import { CapitalInjectionModal } from './components/Modals/CapitalInjectionModal';
+import { CapitalReportModal } from './components/Modals/CapitalReportModal';
 
 // Utils
 import { formatCurrency } from './utils/formatters';
@@ -94,6 +97,13 @@ const App: React.FC = () => {
     removeExpense,
     changeExpenseStatus
   } = useExpenses(user);
+
+  const {
+    injections,
+    loadInjections,
+    saveInjection,
+    removeInjection
+  } = useCapitalInjections(user);
 
   const {
     calcInputs,
@@ -174,6 +184,9 @@ const App: React.FC = () => {
   // Recurring Expenses
   const { templates, addTemplate, removeTemplate, updateTemplate } = useRecurringExpenses();
   const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [isInjectionModalOpen, setIsInjectionModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [activeInjectionType, setActiveInjectionType] = useState<'add' | 'remove'>('add');
 
   const handleGenerateRecurringExpenses = async () => {
     const targetYear = expenseYearFilter;
@@ -255,7 +268,8 @@ const App: React.FC = () => {
         loadOrders(),
         loadFilaments(),
         loadParts(),
-        loadExpenses()
+        loadExpenses(),
+        loadInjections()
       ]);
     } catch (err) {
       console.error('Initial load failed:', err);
@@ -408,56 +422,186 @@ const App: React.FC = () => {
   };
 
   // Calculate Detailed Cash Flow
+  // Calculate Detailed Cash Flow
+  // Calculate Detailed Cash Flow
   const cashFlow = useMemo(() => {
-    // 1. Revenue (Confirmed Orders) - EXCLUDING FREIGHT
-    const revenue = orders
-      .filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status))
-      .reduce((acc, curr) => {
-        const productTotal = (curr.quantity || 1) * (curr.unitValue || 0);
-        return acc + productTotal;
-      }, 0);
+    // Helper to check if a date matches the expense filters
+    const matchesFilter = (dateStr?: string) => {
+      if (!dateStr) return false;
+      const [yearStr, monthStr] = dateStr.split('T')[0].split('-');
+      const year = parseInt(yearStr);
+      const month = parseInt(monthStr) - 1; // 0-indexed
 
-    // 2. Paid Expenses (Manual Expenses)
-    const paidExpenses = expenses
+      if (expenseMonthFilter === -1) {
+        return year === expenseYearFilter;
+      }
+      return year === expenseYearFilter && month === expenseMonthFilter;
+    };
+
+    // Helper to check if a date is BEFORE or IN the selected period (for stock/accumulation)
+    // If "All Months" (-1) is selected, it matches everything in that year or before
+    const isAccumulated = (dateStr?: string) => {
+      if (!dateStr) return false;
+      const [yearStr, monthStr] = dateStr.split('T')[0].split('-');
+      const year = parseInt(yearStr);
+      const month = parseInt(monthStr) - 1;
+
+      // Filter is "All Months" (-1) for a specific year
+      // Accumulated implies up to the end of that year? Or just everything historically?
+      // Usually "Balance" is "Everything up to now" or "Everything up to the end of selected period".
+      // Let's assume:
+      // If specific Month selected: Include everything <= Month/Year
+      // If "All" selected for 2024: Include everything <= Dec 2024
+
+      // However, to keep it simple and useful: 
+      // User likely wants "What was my balance at the end of January?".
+
+      if (expenseMonthFilter === -1) {
+        // If filtering 2025 ALL, we likely want everything up to end of 2025.
+        // Or practically, everything up to today if we are organizing by year? 
+        // Let's go strict: Year <= FilterYear
+        return year <= expenseYearFilter;
+      }
+
+      // If Month/Year is selected (e.g. Feb 2025)
+      // Include if Year < 2025 OR (Year == 2025 AND Month <= Feb)
+      if (year < expenseYearFilter) return true;
+      if (year === expenseYearFilter && month <= expenseMonthFilter) return true;
+
+      return false;
+    };
+
+
+    // --- GLOBAL TOTALS (For Report Modal) ---
+
+    // const globalRevenue = orders ... (We can reuse the accumulated logic or keep this separate for strict "All Time")
+    // Let's keep strict "All Time" for the Capital Report as requested before.
+    const globalRevenue = orders
+      .filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status))
+      .reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
+
+    const globalPaidExpenses = expenses
       .filter(e => e.status === 'Pago')
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    // 3. Filament Inventory Purchases (Considered as Cash Outflow)
-    const filamentCost = filaments.reduce((acc, filament) => {
-      // Cost = (Price/Kg * Weight) + Freight
-      const cost = (filament.costPerKg * filament.initialWeight) + (filament.freight || 0);
-      return acc + cost;
+    const globalFilamentCost = filaments.reduce((acc, f) => {
+      return acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0));
     }, 0);
 
-    // 4. Parts Inventory Purchases (Considered as Cash Outflow)
-    const partsCost = parts.reduce((acc, part) => {
-      // Cost = Unit Cost * Quantity
-      return acc + (part.unitCost * part.quantity);
+    const globalPartsCost = parts.reduce((acc, p) => acc + (p.unitCost * p.quantity), 0);
+
+    const globalInjections = injections.reduce((acc, curr) => acc + curr.amount, 0);
+
+    const globalInventoryCost = globalFilamentCost + globalPartsCost;
+    const globalBalance = globalRevenue + globalInjections - globalPaidExpenses - globalInventoryCost;
+
+
+    // --- PERIOD TOTALS (Flow) ---
+    // Strictly what happened IN that month/year (Income Statement view)
+
+    // 1. Period Revenue
+    const periodRevenue = orders
+      .filter(o => {
+        if (!['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)) return false;
+        return matchesFilter(o.date);
+      })
+      .reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
+
+    // 2. Period Paid Expenses
+    const periodPaidExpenses = expenses
+      .filter(e => {
+        if (e.status !== 'Pago') return false;
+        // Use paidDate preferably, fallback to dueDate
+        return matchesFilter(e.paidDate || e.dueDate);
+      })
+      .reduce((acc, curr) => acc + curr.amount, 0);
+
+    // 3. Period Filament Cost
+    const periodFilamentCost = filaments.reduce((acc, f) => {
+      if (matchesFilter(f.purchaseDate)) {
+        return acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0));
+      }
+      return acc;
     }, 0);
 
-    const inventoryCost = filamentCost + partsCost;
+    // 4. Period Parts Cost
+    const periodPartsCost = parts.reduce((acc, p) => {
+      if (matchesFilter(p.purchaseDate)) {
+        return acc + (p.unitCost * p.quantity);
+      }
+      return acc;
+    }, 0);
 
-    // 5. Maintenance Reserve (Sinking Fund)
-    const maintenanceReserve = orders
-      .filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status))
+    const periodInventoryCost = periodFilamentCost + periodPartsCost;
+
+    // --- ACCUMULATED TOTALS (Stock) ---
+    // Everything UP TO the end of that month/year (Balance Sheet view)
+
+    // 1. Accumulated Revenue
+    const accumulatedRevenue = orders
+      .filter(o => {
+        if (!['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)) return false;
+        return isAccumulated(o.date);
+      })
+      .reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
+
+    // 2. Accumulated Injections
+    const accumulatedInjections = injections.reduce((acc, curr) => {
+      if (isAccumulated(curr.date)) return acc + curr.amount;
+      return acc;
+    }, 0);
+
+    // 3. Accumulated Expenses
+    const accumulatedPaidExpenses = expenses
+      .filter(e => {
+        if (e.status !== 'Pago') return false;
+        return isAccumulated(e.paidDate || e.dueDate);
+      })
+      .reduce((acc, curr) => acc + curr.amount, 0);
+
+    // 4. Accumulated Inventory
+    const accumulatedFilamentCost = filaments.reduce((acc, f) => {
+      if (isAccumulated(f.purchaseDate)) return acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0));
+      return acc;
+    }, 0);
+
+    const accumulatedPartsCost = parts.reduce((acc, p) => {
+      if (isAccumulated(p.purchaseDate)) return acc + (p.unitCost * p.quantity);
+      return acc;
+    }, 0);
+
+    const accumulatedInventoryCost = accumulatedFilamentCost + accumulatedPartsCost;
+
+    // 5. Accumulated Maintenance Reserve
+    const accumulatedMaintenanceReserve = orders
+      .filter(o => {
+        if (!['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)) return false;
+        return isAccumulated(o.date);
+      })
       .reduce((acc, curr) => {
         if (curr.maintenanceCost !== undefined) {
           return acc + curr.maintenanceCost;
         }
-        // Fallback for old orders
         return acc + ((curr.time || 0) * (curr.quantity || 1) * calcResults.hourlyMaintenanceRate);
       }, 0);
 
+    // The Balance is: (Rev + Inj) - (Exp + Inv)
+    const accumulatedBalance = accumulatedRevenue + accumulatedInjections - accumulatedPaidExpenses - accumulatedInventoryCost;
+
+
     return {
-      revenue,
-      paidExpenses,
-      inventoryCost,
-      filamentCost,
-      partsCost,
-      maintenanceReserve,
-      balance: revenue - paidExpenses - inventoryCost
+      revenue: periodRevenue, // Period (Flow)
+      paidExpenses: periodPaidExpenses, // Period (Flow)
+      inventoryCost: periodInventoryCost, // Period (Flow)
+      filamentCost: periodFilamentCost, // Period (Flow)
+      partsCost: periodPartsCost, // Period (Flow)
+
+      maintenanceReserve: accumulatedMaintenanceReserve, // Accumulated (Stock) -> Changed as requested
+      balance: accumulatedBalance, // Accumulated (Stock) -> This is the fix!
+
+      globalBalance: globalBalance // Always All-Time
     };
-  }, [orders, expenses, filaments, parts, calcResults.hourlyMaintenanceRate]);
+  }, [orders, expenses, filaments, parts, injections, calcResults.hourlyMaintenanceRate, expenseMonthFilter, expenseYearFilter]);
 
   if (authLoading) {
     return (
@@ -699,6 +843,15 @@ const App: React.FC = () => {
                 updateExpenseStatusHandler={changeExpenseStatus}
                 onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
                 cashFlow={cashFlow}
+                onOpenInjectionModal={() => {
+                  setActiveInjectionType('add');
+                  setIsInjectionModalOpen(true);
+                }}
+                onOpenWithdrawalModal={() => {
+                  setActiveInjectionType('remove');
+                  setIsInjectionModalOpen(true);
+                }}
+                onOpenReportModal={() => setIsReportModalOpen(true)}
               />
             )}
           </div>
@@ -768,6 +921,27 @@ const App: React.FC = () => {
         onGenerate={handleGenerateRecurringExpenses}
         monthName={MONTH_NAMES[expenseMonthFilter === -1 ? new Date().getMonth() : expenseMonthFilter]}
         year={expenseYearFilter}
+      />
+
+
+      <CapitalInjectionModal
+        isOpen={isInjectionModalOpen}
+        onClose={() => setIsInjectionModalOpen(false)}
+        type={activeInjectionType}
+        onSave={async (injection) => {
+          await saveInjection(injection);
+          setIsInjectionModalOpen(false);
+        }}
+      />
+
+      <CapitalReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        injections={injections}
+        onDelete={async (id) => {
+          await removeInjection(id);
+        }}
+        totalBalance={cashFlow.globalBalance}
       />
 
       {

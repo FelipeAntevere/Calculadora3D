@@ -1,5 +1,5 @@
 
-import { Order, OrderStatus, CostsConfig, DashboardMetrics, CostBreakdown, DailyData, StateDistribution, Filament, ReplacementPart, Expense } from '../types';
+import { Order, OrderStatus, CostsConfig, DashboardMetrics, CostBreakdown, DailyData, StateDistribution, Filament, ReplacementPart, Expense, CapitalInjection } from '../types';
 import { DEFAULT_COSTS_CONFIG } from '../constants';
 import { supabase } from './supabase';
 
@@ -551,4 +551,45 @@ export const updateExpenseStatus = async (id: string, status: string, paidDate?:
     dueDate: data.due_date,
     paidDate: data.paid_date
   } as Expense;
+};
+
+export const fetchCapitalInjections = async (): Promise<CapitalInjection[]> => {
+  const { data, error } = await supabase
+    .from('capital_injections')
+    .select('*')
+    .order('date', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []) as CapitalInjection[];
+};
+
+export const upsertCapitalInjection = async (injection: Partial<CapitalInjection>) => {
+  const injectionData = {
+    ...injection,
+    // user_id: user.id, // handled by default constraint in DB or can be explicit
+  };
+
+  const { data, error } = await supabase
+    .from('capital_injections')
+    .upsert(injectionData)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data as CapitalInjection;
+};
+
+export const deleteCapitalInjection = async (id: string) => {
+  console.log('Attempting to delete capital injection:', id);
+  const { error } = await supabase
+    .from('capital_injections')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting capital injection:', error);
+    throw error;
+  }
 };

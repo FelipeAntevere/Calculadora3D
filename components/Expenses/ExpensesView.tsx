@@ -8,7 +8,8 @@ import {
     Trash2,
     Wallet,
     Receipt,
-    Repeat
+    Repeat,
+    FileText
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { Expense } from '../../types';
@@ -37,6 +38,9 @@ interface ExpensesViewProps {
         maintenanceReserve: number;
         balance: number;
     };
+    onOpenInjectionModal: () => void;
+    onOpenWithdrawalModal: () => void;
+    onOpenReportModal: () => void;
 }
 
 /**
@@ -55,7 +59,10 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     deleteExpenseHandler,
     updateExpenseStatusHandler,
     onOpenRecurringModal,
-    cashFlow
+    cashFlow,
+    onOpenInjectionModal,
+    onOpenWithdrawalModal,
+    onOpenReportModal
 }) => {
     const [openExpenseStatusDropdownId, setOpenExpenseStatusDropdownId] = useState<string | null>(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -89,6 +96,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        onClick={onOpenReportModal}
+                        className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                    >
+                        <FileText size={18} className="text-emerald-500" />
+                        Relatório
+                    </button>
+                    <button
                         onClick={onOpenRecurringModal}
                         className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
                     >
@@ -105,8 +119,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
             </div>
 
-            <ExpenseSummaryCards metrics={expenseMetrics} cashFlow={cashFlow} />
-
+            {/* Filters Relocated to Top */}
             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
                 <div className="flex items-center gap-2 text-slate-400 mr-2">
                     <Filter className="w-4 h-4" />
@@ -143,6 +156,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </div>
                 </div>
             </div>
+
+            <ExpenseSummaryCards
+                metrics={expenseMetrics}
+                cashFlow={cashFlow}
+                onOpenInjectionModal={onOpenInjectionModal}
+                onOpenWithdrawalModal={onOpenWithdrawalModal}
+            />
 
             <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div className="">

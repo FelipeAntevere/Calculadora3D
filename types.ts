@@ -132,3 +132,12 @@ export interface PricingCalculatorInputs {
   productiveHoursMonth: number;
   profitMargin: number;
 }
+
+export interface CapitalInjection {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  created_at?: string;
+  user_id?: string;
+}
