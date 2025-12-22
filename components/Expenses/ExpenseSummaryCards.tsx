@@ -1,123 +1,158 @@
 import React from 'react';
-import { DollarSign, Check, Clock, AlertCircle, Wallet, Calculator } from 'lucide-react';
+import { DollarSign, Check, Clock, AlertCircle, Wallet, Calculator, TrendingUp, TrendingDown, Package, CreditCard } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { ExpenseMetrics } from '../../hooks/useExpenseMetrics';
 
 interface ExpenseSummaryCardsProps {
     metrics: ExpenseMetrics;
-    cashBalance?: number;
+    cashFlow: {
+        revenue: number;
+        paidExpenses: number;
+        inventoryCost: number;
+        filamentCost: number;
+        partsCost: number;
+        balance: number;
+    };
 }
 
 /**
- * Summary cards showing expense statistics
- * Displays total, paid, pending, and overdue expenses
+ * Summary cards showing expense statistics and Cash Flow
  */
-export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metrics, cashBalance }) => {
-    const projectedBalance = (cashBalance || 0) - (metrics.pendingAmount + metrics.overdueAmount);
+export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metrics, cashFlow }) => {
+    const projectedBalance = (cashFlow.balance || 0) - (metrics.pendingAmount + metrics.overdueAmount);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            {/* Saldo em Caixa */}
-            {cashBalance !== undefined && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo em Caixa</p>
-                        <div className="bg-indigo-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                            <Wallet className="w-5 h-5 text-indigo-500" />
+        <div className="space-y-4">
+            {/* Main Cash Flow Rows */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* 1. Receita (Entradas) */}
+                <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <TrendingUp size={64} className="text-emerald-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div className="flex items-center gap-2.5 mb-2">
+                                <div className="p-1.5 bg-emerald-50 rounded-lg">
+                                    <TrendingUp className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entradas (Receita)</span>
+                            </div>
+                            <p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(cashFlow.revenue)}</p>
+                            <p className="text-[10px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                                <Check size={10} strokeWidth={3} />
+                                Vendas confirmadas
+                            </p>
                         </div>
                     </div>
-                    <div>
-                        <p className={`text-2xl font-bold ${cashBalance < 0 ? 'text-rose-600' : 'text-[#0ea5e9]'}`}>
-                            {formatCurrency(cashBalance)}
-                        </p>
-                        <p className="text-xs text-slate-400 font-medium mt-1">
-                            Disponível
-                        </p>
-                    </div>
                 </div>
-            )}
 
-            {/* Saldo Previsto */}
-            {cashBalance !== undefined && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Saldo Previsto</p>
-                        <div className="bg-blue-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                            <Calculator className="w-5 h-5 text-blue-500" />
+                {/* 2. Saídas (Despesas + Estoque) */}
+                <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <TrendingDown size={64} className="text-rose-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div className="flex items-center gap-2.5 mb-2">
+                                <div className="p-1.5 bg-rose-50 rounded-lg">
+                                    <TrendingDown className="w-4 h-4 text-rose-500" />
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saídas Totais</span>
+                            </div>
+                            <p className="text-3xl font-black text-slate-800 tracking-tight">{formatCurrency(cashFlow.paidExpenses + cashFlow.inventoryCost)}</p>
+                        </div>
+
+                        {/* Breakdown - Compacted & Close & Split */}
+                        <div className="mt-3 space-y-1 border-t border-slate-50 pt-2.5">
+                            <div className="flex items-center gap-2 text-[10px]">
+                                <span className="text-slate-500 font-bold flex items-center gap-1 min-w-[70px]"><CreditCard size={10} /> Contas:</span>
+                                <span className="font-bold text-rose-600">{formatCurrency(cashFlow.paidExpenses)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px]">
+                                <span className="text-slate-500 font-bold flex items-center gap-1 min-w-[70px]"><Package size={10} /> Filamento:</span>
+                                <span className="font-bold text-rose-600">{formatCurrency(cashFlow.filamentCost)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px]">
+                                <span className="text-slate-500 font-bold flex items-center gap-1 min-w-[70px]"><Package size={10} /> Peças:</span>
+                                <span className="font-bold text-rose-600">{formatCurrency(cashFlow.partsCost)}</span>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                {/* 3. Saldo em Caixa */}
+                <div className="bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] rounded-[20px] shadow-lg shadow-sky-200 p-5 relative overflow-hidden text-white group hover:shadow-xl hover:shadow-sky-200/80 transition-all">
+                    <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Wallet size={64} className="text-white" />
+                    </div>
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2.5 mb-2">
+                                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <Wallet className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-[10px] font-bold text-sky-100 uppercase tracking-widest">Saldo em Caixa</span>
+                            </div>
+                            <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(cashFlow.balance)}</p>
+                            <p className="text-[10px] font-medium text-sky-100 mt-1 opacity-90">Lucro Real Disponível</p>
+                        </div>
+                        <div className="mt-3 pt-2.5 border-t border-white/20 flex flex-col gap-0.5">
+                            <span className="text-[9px] font-bold text-sky-200 uppercase">Saldo Previsto (Pós Contas)</span>
+                            <span className="text-base font-bold text-white">{formatCurrency(projectedBalance)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Detailed Expense Status Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Total de Contas */}
+                <div className="bg-slate-50/80 rounded-xl border border-slate-100 p-3 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-slate-500">
+                        <DollarSign size={16} />
+                    </div>
                     <div>
-                        <p className={`text-2xl font-bold ${projectedBalance >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
-                            {formatCurrency(projectedBalance)}
-                        </p>
-                        <p className="text-xs text-slate-400 font-medium mt-1">
-                            Pós Pagamentos
-                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</p>
+                        <p className="text-sm font-black text-slate-700">{formatCurrency(metrics.totalAmount)}</p>
+                        <p className="text-[9px] text-slate-400 font-bold">{metrics.total} conts.</p>
                     </div>
                 </div>
-            )}
 
-            {/* Total de Contas */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total de Contas</p>
-                    <div className="bg-sky-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                        <DollarSign className="w-5 h-5 text-sky-500" />
+                {/* Pagas */}
+                <div className="bg-emerald-50/50 rounded-xl border border-emerald-100/50 p-3 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg border border-emerald-100 shadow-sm text-emerald-500">
+                        <Check size={16} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Pagas</p>
+                        <p className="text-sm font-black text-emerald-600">{formatCurrency(metrics.paidAmount)}</p>
+                        <p className="text-[9px] text-emerald-400 font-bold">{metrics.paidCount} pags.</p>
                     </div>
                 </div>
-                <div>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(metrics.totalAmount)}</p>
-                    <p className="text-xs text-slate-400 font-medium mt-1">
-                        {metrics.total} {metrics.total === 1 ? 'conta' : 'contas'} registradas
-                    </p>
-                </div>
-            </div>
 
-            {/* Contas Pagas */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pagas</p>
-                    <div className="bg-emerald-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                        <Check className="w-5 h-5 text-emerald-500" />
+                {/* Pendentes */}
+                <div className="bg-amber-50/50 rounded-xl border border-amber-100/50 p-3 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg border border-amber-100 shadow-sm text-amber-500">
+                        <Clock size={16} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Pendentes</p>
+                        <p className="text-sm font-black text-amber-600">{formatCurrency(metrics.pendingAmount)}</p>
+                        <p className="text-[9px] text-amber-400 font-bold">{metrics.pendingCount} pends.</p>
                     </div>
                 </div>
-                <div>
-                    <p className="text-2xl font-bold text-emerald-600">{formatCurrency(metrics.paidAmount)}</p>
-                    <p className="text-xs text-slate-400 font-medium mt-1">
-                        {metrics.paidCount} {metrics.paidCount === 1 ? 'conta' : 'contas'} pagas
-                    </p>
-                </div>
-            </div>
 
-            {/* Contas Pendentes */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pendentes</p>
-                    <div className="bg-amber-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                        <Clock className="w-5 h-5 text-amber-500" />
+                {/* Atrasadas */}
+                <div className="bg-rose-50/50 rounded-xl border border-rose-100/50 p-3 flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-lg border border-rose-100 shadow-sm text-rose-500">
+                        <AlertCircle size={16} />
                     </div>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-amber-600">{formatCurrency(metrics.pendingAmount)}</p>
-                    <p className="text-xs text-slate-400 font-medium mt-1">
-                        {metrics.pendingCount} {metrics.pendingCount === 1 ? 'conta' : 'contas'} pendentes
-                    </p>
-                </div>
-            </div>
-
-            {/* Contas Atrasadas */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Atrasadas</p>
-                    <div className="bg-rose-50 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                        <AlertCircle className="w-5 h-5 text-rose-500" />
+                    <div>
+                        <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">Atrasadas</p>
+                        <p className="text-sm font-black text-rose-600">{formatCurrency(metrics.overdueAmount)}</p>
+                        <p className="text-[9px] text-rose-400 font-bold">{metrics.overdueCount} atras.</p>
                     </div>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-rose-600">{formatCurrency(metrics.overdueAmount)}</p>
-                    <p className="text-xs text-slate-400 font-medium mt-1">
-                        {metrics.overdueCount} {metrics.overdueCount === 1 ? 'conta' : 'contas'} atrasadas
-                    </p>
                 </div>
             </div>
         </div>

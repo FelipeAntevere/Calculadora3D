@@ -34,6 +34,16 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
     });
 
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [localAmount, setLocalAmount] = useState('');
+
+    // Reset localAmount when switching modes or submitting
+    const updateLocalAmount = (val?: number) => {
+        if (val === undefined || val === null) {
+            setLocalAmount('');
+        } else {
+            setLocalAmount(val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -61,6 +71,7 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
             }
             // Reset form
             setNewTemplate({ description: '', category: '', defaultDay: undefined, defaultAmount: undefined });
+            setLocalAmount('');
         }
     };
 
@@ -71,11 +82,13 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
             defaultDay: template.defaultDay,
             defaultAmount: template.defaultAmount
         });
+        updateLocalAmount(template.defaultAmount);
         setEditingId(template.id);
     };
 
     const handleCancelEdit = () => {
         setNewTemplate({ description: '', category: '', defaultDay: undefined, defaultAmount: undefined });
+        setLocalAmount('');
         setEditingId(null);
     };
 
@@ -100,7 +113,7 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                     {/* Form to Add New */}
                     <form onSubmit={handleSubmit} className={`p-6 rounded-2xl mb-8 border transition-colors ${editingId ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'}`}>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                            <div className="md:col-span-7">
+                            <div className="md:col-span-5">
                                 <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700' : 'text-slate-900'}`}>
                                     {editingId ? 'Editando Despesa' : 'Descrição'}
                                 </label>
@@ -125,45 +138,35 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700"
                                 />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-4">
                                 <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700' : 'text-slate-900'}`}>Valor (R$)</label>
                                 <input
                                     type="text"
+                                    inputMode="numeric"
                                     placeholder="0,00"
-                                    value={newTemplate.defaultAmount
-                                        ? newTemplate.defaultAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                        : ''}
+                                    value={localAmount}
                                     onChange={e => {
                                         const value = e.target.value;
-                                        // Update the model with parsed value
-                                        // Remove non-numeric except . and ,
-                                        const cleanValue = value.replace(/[^\d.,]/g, '');
+                                        const digits = value.replace(/\D/g, '');
+                                        const realValue = Number(digits) / 100;
 
-                                        // Check if it matches BR format (dots for thousands, comma for decimal)
-                                        // We basically remove dots, and replace comma with dot for JS Parsing
-                                        const numericString = cleanValue.replace(/\./g, '').replace(',', '.');
-                                        const parsed = parseFloat(numericString);
-
-                                        // Manual backspace handling for empty
-                                        if (cleanValue === '') {
+                                        if (digits === '') {
+                                            setLocalAmount('');
                                             setNewTemplate({ ...newTemplate, defaultAmount: undefined });
-                                            return;
+                                        } else {
+                                            setLocalAmount(realValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                            setNewTemplate({ ...newTemplate, defaultAmount: realValue });
                                         }
-
-                                        setNewTemplate({
-                                            ...newTemplate,
-                                            defaultAmount: isNaN(parsed) ? undefined : parsed
-                                        });
                                     }}
-                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700"
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-sky-500/20 outline-none placeholder:text-slate-300"
                                 />
                             </div>
                             <div className="md:col-span-1 flex gap-2">
                                 <button
                                     type="submit"
                                     className={`w-full h-[42px] text-white rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-95 ${editingId
-                                            ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-100'
-                                            : 'bg-sky-500 hover:bg-sky-600 shadow-sky-100'
+                                        ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-100'
+                                        : 'bg-sky-500 hover:bg-sky-600 shadow-sky-100'
                                         }`}
                                     title={editingId ? "Salvar Alterações" : "Adicionar"}
                                 >

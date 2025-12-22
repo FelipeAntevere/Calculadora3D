@@ -28,7 +28,14 @@ interface ExpensesViewProps {
     deleteExpenseHandler: (id: string) => void;
     updateExpenseStatusHandler: (id: string, status: 'Pendente' | 'Pago' | 'Atrasado', paidDate?: string) => void;
     onOpenRecurringModal: () => void;
-    companyCashBalance: number;
+    cashFlow: {
+        revenue: number;
+        paidExpenses: number;
+        inventoryCost: number;
+        filamentCost: number;
+        partsCost: number;
+        balance: number;
+    };
 }
 
 /**
@@ -47,7 +54,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     deleteExpenseHandler,
     updateExpenseStatusHandler,
     onOpenRecurringModal,
-    companyCashBalance
+    cashFlow
 }) => {
     const [openExpenseStatusDropdownId, setOpenExpenseStatusDropdownId] = useState<string | null>(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -97,7 +104,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
             </div>
 
-            <ExpenseSummaryCards metrics={expenseMetrics} cashBalance={companyCashBalance} />
+            <ExpenseSummaryCards metrics={expenseMetrics} cashFlow={cashFlow} />
 
             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
                 <div className="flex items-center gap-2 text-slate-400 mr-2">
@@ -138,8 +145,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
             </div>
 
-            <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div className="overflow-x-auto min-h-[400px]">
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
+                <div className="">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
