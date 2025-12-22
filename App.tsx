@@ -385,18 +385,36 @@ const App: React.FC = () => {
     setIsSummaryModalOpen(true);
   };
 
-  // Calculate Company Cash Balance (Total Paid Orders - Total Paid Expenses)
+  // Calculate Company Cash Balance (Total Paid Orders - Total Paid Expenses - Inventory Purchases)
   const companyCashBalance = useMemo(() => {
+    // 1. Revenue (Confirmed Orders) - EXCLUDING FREIGHT
     const totalRevenue = orders
-      .filter(o => o.status === 'Finalizado' || o.status === 'Entregue')
-      .reduce((acc, curr) => acc + curr.total, 0);
+      .filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status))
+      .reduce((acc, curr) => {
+        const productTotal = (curr.quantity || 1) * (curr.unitValue || 0);
+        return acc + productTotal;
+      }, 0);
 
+    // 2. Paid Expenses (Manual Expenses)
     const totalPaidExpenses = expenses
       .filter(e => e.status === 'Pago')
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    return totalRevenue - totalPaidExpenses;
-  }, [orders, expenses]);
+    // 3. Filament Inventory Purchases (Considered as Cash Outflow)
+    const totalFilamentCost = filaments.reduce((acc, filament) => {
+      // Cost = (Price/Kg * Weight) + Freight
+      const cost = (filament.costPerKg * filament.initialWeight) + (filament.freight || 0);
+      return acc + cost;
+    }, 0);
+
+    // 4. Parts Inventory Purchases (Considered as Cash Outflow)
+    const totalPartsCost = parts.reduce((acc, part) => {
+      // Cost = Unit Cost * Quantity
+      return acc + (part.unitCost * part.quantity);
+    }, 0);
+
+    return totalRevenue - totalPaidExpenses - totalFilamentCost - totalPartsCost;
+  }, [orders, expenses, filaments, parts]);
 
   if (authLoading) {
     return (
