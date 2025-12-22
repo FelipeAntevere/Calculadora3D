@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   LogOut,
-  LayoutDashboard,
   Calculator,
   ShoppingBag,
   Database,
@@ -30,12 +29,12 @@ import { useParts } from './hooks/useParts';
 import { useExpenses } from './hooks/useExpenses';
 import { useCalculator } from './hooks/useCalculator';
 import { useExpenseMetrics } from './hooks/useExpenseMetrics';
-import { useDashboardStats } from './hooks/useDashboardStats';
+
+// import { useDashboardStats } from './hooks/useDashboardStats'; // REMOVED
 import { useRecurringExpenses } from './hooks/useRecurringExpenses';
 import { useCapitalInjections } from './hooks/useCapitalInjections';
 
 // Components
-import { DashboardView } from './components/Dashboard/DashboardView';
 import { CalculatorView } from './components/Calculator/CalculatorView';
 import { OrdersView } from './components/Orders/OrdersView';
 import { InventoryView } from './components/Inventory/InventoryView';
@@ -64,7 +63,7 @@ const App: React.FC = () => {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'calculator' | 'orders' | 'inventory' | 'parts' | 'expenses'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'orders' | 'inventory' | 'parts' | 'expenses'>('calculator');
 
   // Hooks initialization
   const {
@@ -115,12 +114,11 @@ const App: React.FC = () => {
     clearSavedDefaults
   } = useCalculator(INITIAL_CALC_INPUTS);
 
-  // Dash filters
+  // Shared Filter State (formerly Dash filters)
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [dashboardScope, setDashboardScope] = useState<'month' | 'year' | 'all'>('month');
 
   // Comparison state
   const [isComparing, setIsComparing] = useState(false);
@@ -129,26 +127,7 @@ const App: React.FC = () => {
   const [compStartDate, setCompStartDate] = useState('');
   const [compEndDate, setCompEndDate] = useState('');
 
-  // Create configuration object for dashboard calculations
-  const costsConfig = {
-    materialPricePerGram: ((calcInputs.filamentCostPerKg || 150) / 1000) * (1 + calcInputs.filamentLossPercentage / 100),
-    energyPricePerKWh: calcInputs.kWhCost,
-    laborPricePerHour: calcInputs.laborHourValue,
-    depreciationPricePerHour: calcInputs.maintenancePerHour
-  };
-
-  // Dashboard Metrics Hook
-  const dashMetrics = useDashboardStats(
-    orders,
-    selectedYear,
-    selectedMonth,
-    dashboardScope,
-    isComparing ? compYear : undefined,
-    isComparing ? compMonth : undefined,
-    isComparing ? compStartDate : undefined,
-    isComparing ? compEndDate : undefined,
-    costsConfig
-  );
+  // Dashboard Metrics Removed
 
   // Orders filters
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
@@ -500,12 +479,94 @@ const App: React.FC = () => {
     // Strictly what happened IN that month/year (Income Statement view)
 
     // 1. Period Revenue
-    const periodRevenue = orders
-      .filter(o => {
-        if (!['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)) return false;
-        return matchesFilter(o.date);
-      })
-      .reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
+    // 1. Period Revenue & State Distribution & Chart Data
+    const stateMap: Record<string, { orders: number, revenue: number }> = {};
+    let periodRevenue = 0;
+
+    // Chart Data Generation
+    const isMonthlyView = expenseMonthFilter !== -1;
+    let chartData: { label: string; revenue: number; orders: number }[] = [];
+
+    if (isMonthlyView) {
+      // Daily breakdown for the selected month
+      const daysInMonth = new Date(expenseYearFilter, expenseMonthFilter + 1, 0).getDate();
+      chartData = Array.from({ length: daysInMonth }, (_, i) => ({
+        label: `${i + 1}`,
+        revenue: 0,
+        orders: 0
+      }));
+    } else {
+      // Monthly breakdown for the selected year
+      chartData = Array.from({ length: 12 }, (_, i) => ({
+        label: MONTH_NAMES[i].substring(0, 3),
+        revenue: 0,
+        orders: 0
+      }));
+    }
+
+    // New Metrics Initialization
+    let periodTotalOrders = 0;
+    let periodTotalPrintingHours = 0;
+    let periodEstMaterialCost = 0;
+    let periodEstimatedProfit = 0;
+
+    orders.forEach(o => {
+      if (!['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)) return;
+      if (!matchesFilter(o.date)) return;
+
+      const revenue = (o.quantity || 1) * (o.unitValue || 0);
+      periodRevenue += revenue;
+
+      // Accumulate new metrics
+      periodTotalOrders += 1;
+      periodTotalPrintingHours += (o.time || 0) * (o.quantity || 1);
+
+      // Estimate Material Cost
+      if (o.materialCost !== undefined && o.materialCost >= 0) {
+        periodEstMaterialCost += o.materialCost * (o.quantity || 1);
+      } else {
+        // Fallback: weight * pricePerGram
+        const pricePerGram = ((calcInputs.filamentCostPerKg || 150) / 1000);
+        periodEstMaterialCost += (o.weight || 0) * pricePerGram * (o.quantity || 1);
+      }
+
+      // Calculate Estimated Profit (Revenue - Cost)
+      // Assuming o.unitCost represents the total production cost per unit
+      const totalCost = (o.quantity || 1) * (o.unitCost || 0);
+      periodEstimatedProfit += (revenue - totalCost);
+
+      // State Logic
+      const state = o.state || 'N/A';
+      if (!stateMap[state]) stateMap[state] = { orders: 0, revenue: 0 };
+      stateMap[state].orders += 1;
+      stateMap[state].revenue += revenue;
+
+      // Chart Logic
+      const date = new Date(o.date);
+      let index = 0;
+      if (isMonthlyView) {
+        index = date.getDate() - 1; // 0-indexed day
+      } else {
+        index = date.getMonth(); // 0-indexed month
+      }
+
+      if (chartData[index]) {
+        chartData[index].revenue += revenue;
+        chartData[index].orders += 1;
+        chartData[index].orders += 1;
+      }
+    });
+
+    const periodAverageTicket = periodTotalOrders > 0 ? periodRevenue / periodTotalOrders : 0;
+
+    const stateDistribution = Object.entries(stateMap)
+      .map(([state, data]) => ({
+        state,
+        orders: data.orders,
+        revenue: data.revenue,
+        percentage: periodRevenue > 0 ? (data.revenue / periodRevenue) * 100 : 0
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
     // 2. Period Paid Expenses
     const periodPaidExpenses = expenses
@@ -572,6 +633,9 @@ const App: React.FC = () => {
 
     const accumulatedInventoryCost = accumulatedFilamentCost + accumulatedPartsCost;
 
+    // Safety fallback for hourly rate
+    const hourlyRate = calcResults?.hourlyMaintenanceRate || 0;
+
     // 5. Accumulated Maintenance Reserve
     const accumulatedMaintenanceReserve = orders
       .filter(o => {
@@ -582,12 +646,11 @@ const App: React.FC = () => {
         if (curr.maintenanceCost !== undefined) {
           return acc + curr.maintenanceCost;
         }
-        return acc + ((curr.time || 0) * (curr.quantity || 1) * calcResults.hourlyMaintenanceRate);
+        return acc + ((curr.time || 0) * (curr.quantity || 1) * hourlyRate);
       }, 0);
 
     // The Balance is: (Rev + Inj) - (Exp + Inv)
     const accumulatedBalance = accumulatedRevenue + accumulatedInjections - accumulatedPaidExpenses - accumulatedInventoryCost;
-
 
     return {
       revenue: periodRevenue, // Period (Flow)
@@ -596,12 +659,22 @@ const App: React.FC = () => {
       filamentCost: periodFilamentCost, // Period (Flow)
       partsCost: periodPartsCost, // Period (Flow)
 
-      maintenanceReserve: accumulatedMaintenanceReserve, // Accumulated (Stock) -> Changed as requested
-      balance: accumulatedBalance, // Accumulated (Stock) -> This is the fix!
+      // New Metrics
+      totalOrders: periodTotalOrders,
+      averageTicket: periodAverageTicket,
+      totalPrintingHours: periodTotalPrintingHours,
+      estMaterialCost: periodEstMaterialCost,
+      estimatedProfit: periodEstimatedProfit,
+
+      maintenanceReserve: accumulatedMaintenanceReserve, // Accumulated (Stock)
+      balance: accumulatedBalance, // Accumulated (Stock)
+
+      stateDistribution, // Include State Distribution (Period-based)
+      chartData, // Include Chart Data (Period-based)
 
       globalBalance: globalBalance // Always All-Time
     };
-  }, [orders, expenses, filaments, parts, injections, calcResults.hourlyMaintenanceRate, expenseMonthFilter, expenseYearFilter]);
+  }, [orders, expenses, filaments, parts, injections, calcResults?.hourlyMaintenanceRate, expenseMonthFilter, expenseYearFilter, calcInputs]);
 
   if (authLoading) {
     return (
@@ -630,12 +703,11 @@ const App: React.FC = () => {
 
           <nav className="hidden lg:flex bg-slate-100/50 p-1.5 rounded-[22px] border border-slate-100 space-x-1">
             {[
-              { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { id: 'calculator', icon: Calculator, label: 'Calculadora' },
               { id: 'orders', icon: ShoppingBag, label: 'Pedidos' },
               { id: 'inventory', icon: Database, label: 'Estoque' },
               { id: 'parts', icon: Wrench, label: 'Peças' },
-              { id: 'expenses', icon: DollarSign, label: 'Contas a Pagar' }
+              { id: 'expenses', icon: DollarSign, label: 'Financeiro' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -680,29 +752,7 @@ const App: React.FC = () => {
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-700">
-            {activeTab === 'dashboard' && (
-              <DashboardView
-                metrics={dashMetrics}
-                selectedYear={selectedYear}
-                setSelectedYear={setSelectedYear}
-                selectedMonth={selectedMonth}
-                setSelectedMonth={setSelectedMonth}
-                dashboardScope={dashboardScope}
-                setDashboardScope={setDashboardScope}
-                isComparing={isComparing}
-                setIsComparing={setIsComparing}
-                compYear={compYear}
-                setCompYear={setCompYear}
-                compMonth={compMonth}
-
-                setCompMonth={setCompMonth}
-                compStartDate={compStartDate}
-                setCompStartDate={setCompStartDate}
-                compEndDate={compEndDate}
-                setCompEndDate={setCompEndDate}
-                orders={orders}
-              />
-            )}
+            {/* Dashboard removed */}
             {activeTab === 'calculator' && (
               <CalculatorView
                 calcInputs={calcInputs}
@@ -938,9 +988,9 @@ const App: React.FC = () => {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         injections={injections}
-        onDelete={async (id) => {
-          await removeInjection(id);
-        }}
+        orders={orders}
+        expenses={expenses}
+        onDelete={removeInjection}
         totalBalance={cashFlow.globalBalance}
       />
 

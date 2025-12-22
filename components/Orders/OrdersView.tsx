@@ -72,6 +72,18 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
     const currentYear = new Date().getFullYear();
 
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('.order-dropdown-wrapper')) {
+                setOpenStatusDropdownId(null);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) return;
 
@@ -262,7 +274,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-center">
-                                                <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+                                                <div className="relative inline-block text-left order-dropdown-wrapper">
                                                     <button
                                                         onClick={() => setOpenStatusDropdownId(openStatusDropdownId === order.id ? null : order.id)}
                                                         className={`flex items-center justify-between gap-2 px-4 py-2 rounded-xl text-[11px] font-bold transition-all min-w-[130px] ${getStatusStyle(order.status)} hover:shadow-md active:scale-95`}

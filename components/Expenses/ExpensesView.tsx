@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import {
-    Plus,
-    Filter,
-    ChevronDown,
-    Check,
-    Edit2,
-    Trash2,
-    Wallet,
-    Receipt,
-    Repeat,
-    FileText
-} from 'lucide-react';
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    BarChart,
+    Bar
+} from 'recharts';
+import { Filter, Edit2, Trash2, Check, ChevronDown, Receipt, Calendar, CreditCard, PieChart, Plus, Minus, MapPin, FileText, Repeat, TrendingUp, ShoppingBag, Clock, Users, Database } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { Expense } from '../../types';
-import { MONTH_NAMES } from '../../constants';
+import { MONTH_NAMES, BRAZILIAN_STATES } from '../../constants';
 import { ExpenseSummaryCards } from './ExpenseSummaryCards';
 import { PaymentDateModal } from '../Modals/PaymentDateModal';
 
@@ -37,6 +37,16 @@ interface ExpensesViewProps {
         partsCost: number;
         maintenanceReserve: number;
         balance: number;
+
+        // New Metrics
+        totalOrders?: number;
+        averageTicket?: number;
+        totalPrintingHours?: number;
+        estMaterialCost?: number;
+        estimatedProfit?: number;
+
+        stateDistribution?: { state: string; orders: number; revenue: number; percentage: number }[];
+        chartData?: { label: string; revenue: number; orders: number }[];
     };
     onOpenInjectionModal: () => void;
     onOpenWithdrawalModal: () => void;
@@ -68,6 +78,18 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [expenseToPay, setExpenseToPay] = useState<Expense | null>(null);
     const currentYear = new Date().getFullYear();
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('.expense-dropdown-wrapper')) {
+                setOpenExpenseStatusDropdownId(null);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
 
     const handleStatusClick = (expense: Expense, status: 'Pendente' | 'Pago' | 'Atrasado') => {
         setOpenExpenseStatusDropdownId(null);
@@ -164,9 +186,65 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 onOpenWithdrawalModal={onOpenWithdrawalModal}
             />
 
+            {/* New Production Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-slate-700">Total de Pedidos</h3>
+                        <div className="bg-amber-50 p-2 rounded-xl">
+                            <ShoppingBag size={20} className="text-amber-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <span className="text-2xl font-black text-sky-600 block mb-1">{cashFlow.totalOrders || 0}</span>
+                        <p className="text-slate-400 text-xs font-medium">Pedidos confirmados</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-slate-700">Ticket Médio</h3>
+                        <div className="bg-indigo-50 p-2 rounded-xl">
+                            <Users size={20} className="text-indigo-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <span className="text-2xl font-black text-slate-800 block mb-1">{formatCurrency(cashFlow.averageTicket || 0)}</span>
+                        <p className="text-slate-400 text-xs font-medium">Valor médio por pedido</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-slate-700">Custo de Filamento</h3>
+                        <div className="bg-rose-50 p-2 rounded-xl">
+                            <Database size={20} className="text-rose-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <span className="text-2xl font-black text-rose-600 block mb-1">{formatCurrency(cashFlow.estMaterialCost || 0)}</span>
+                        <p className="text-slate-400 text-xs font-medium">Gasto estimado com material</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-slate-700">Total de Horas</h3>
+                        <div className="bg-slate-50 p-2 rounded-xl">
+                            <Clock size={20} className="text-slate-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <span className="text-2xl font-black text-slate-800 block mb-1">{(cashFlow.totalPrintingHours || 0).toFixed(1)}h</span>
+                        <p className="text-slate-400 text-xs font-medium">Tempo total de impressão</p>
+                    </div>
+                </div>
+            </div>
+
             <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div className="">
                     <table className="w-full text-left border-collapse">
+                        {/* Table Header */}
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
                                 <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome da Conta</th>
@@ -198,7 +276,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                             <span className="text-sm font-semibold text-slate-900">{formatCurrency(expense.amount)}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                                            <div className="relative inline-block expense-dropdown-wrapper">
                                                 <button
                                                     onClick={() => setOpenExpenseStatusDropdownId(openExpenseStatusDropdownId === expense.id ? null : expense.id)}
                                                     className={`flex items-center justify-between gap-2 px-4 py-2 rounded-xl text-[11px] font-black transition-all min-w-[130px] hover:shadow-md active:scale-95 ${expense.status === 'Pago'
@@ -217,7 +295,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                                             <button
                                                                 key={status}
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
+                                                                    // e.stopPropagation(); // No longer needed
                                                                     handleStatusClick(expense, status as any);
                                                                 }}
                                                                 className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${expense.status === status ? 'bg-sky-50 text-sky-600' : 'text-slate-600 hover:bg-slate-50'
@@ -255,6 +333,95 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </table>
                 </div>
             </div>
+
+            {/* Charts Section (Added) */}
+            {cashFlow.chartData && cashFlow.chartData.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <TrendingUp size={18} className="text-sky-500" />
+                            Faturamento {expenseMonthFilter === -1 ? 'Mensal' : 'Diário'}
+                        </h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={cashFlow.chartData}>
+                                    <defs>
+                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.1} />
+                                            <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={(value) => `R$${value}`} />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                                        formatter={(value: number) => [formatCurrency(value), 'Receita']}
+                                    />
+                                    <Area type="monotone" dataKey="revenue" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <ShoppingBag size={18} className="text-amber-500" />
+                            Volume de Pedidos
+                        </h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={cashFlow.chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                    <Tooltip
+                                        cursor={{ fill: '#f8fafc' }}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                                        formatter={(value: number) => [value, 'Pedidos']}
+                                    />
+                                    <Bar dataKey="orders" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* State Distribution Section (Added) */}
+            {cashFlow.stateDistribution && cashFlow.stateDistribution.length > 0 && (
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
+                    <h3 className="text-base font-bold text-slate-800 mb-6">Pedidos por Estado</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {cashFlow.stateDistribution.map((state: any) => {
+                            const stateName = BRAZILIAN_STATES.find(s => s.sigla === state.state)?.nome || state.state;
+                            return (
+                                <div key={state.state} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sky-600 shadow-sm border border-slate-100">
+                                            <MapPin size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">{stateName}</p>
+                                            <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                                                <span>{state.orders} pedido(s)</span>
+                                                <span>•</span>
+                                                <span className="text-emerald-600">{formatCurrency(state.revenue)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right pl-2">
+                                        <p className="text-xs font-bold text-slate-800">{state.percentage.toFixed(1)}%</p>
+                                        <div className="w-16 h-1 w-full bg-slate-200 rounded-full mt-1 overflow-hidden">
+                                            <div className="bg-sky-500 h-full" style={{ width: `${state.percentage}%` }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <PaymentDateModal
                 isOpen={isPaymentModalOpen}

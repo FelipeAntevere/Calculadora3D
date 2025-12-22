@@ -15,6 +15,7 @@ interface ExpenseSummaryCardsProps {
         partsCost: number;
         maintenanceReserve: number;
         balance: number;
+        estimatedProfit?: number;
     };
 }
 
@@ -63,22 +64,29 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                     </div>
                 </div>
 
-                {/* 2. Reserva de Manutenção */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-[#f59e0b] to-[#d97706] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                {/* 2. Lucro Estimado (New) */}
+                <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-2.5 mb-2">
-                                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                                    <Wrench className="w-4 h-4 text-white" />
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="p-1.5 bg-emerald-50 rounded-lg">
+                                        <TrendingUp className="w-4 h-4 text-emerald-500" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lucro Estimado</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-amber-100 uppercase tracking-widest">Manutenção da Impressora</span>
+                                <div className="p-1 bg-emerald-50 rounded-full">
+                                    <TrendingUp size={12} className="text-emerald-500" />
+                                </div>
                             </div>
 
                             <div className="flex items-end justify-between gap-2">
                                 <div>
-                                    <p className="text-2xl font-black text-white tracking-tight truncate">{formatCurrency(cashFlow.maintenanceReserve)}</p>
-                                    <p className="text-[10px] font-bold text-amber-100 mt-1 flex items-center gap-1">
-                                        (Retido)
+                                    <p className="text-2xl font-black text-emerald-600 tracking-tight truncate">
+                                        {formatCurrency(cashFlow.estimatedProfit || 0)}
+                                    </p>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-1">
+                                        Receita menos custos de produção
                                     </p>
                                 </div>
                             </div>
@@ -86,7 +94,7 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                     </div>
                 </div>
 
-                {/* 3. Saídas (Despesas + Estoque) */}
+                {/* 3. Total de Despesas (Saídas) */}
                 <div className="lg:col-span-2 bg-gradient-to-br from-[#f43f5e] to-[#be123c] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                         <div>
@@ -120,10 +128,33 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                             </div>
                         </div>
                     </div>
-                </div >
+                </div>
 
-                {/* 3. Total em Conta (Full) */}
-                <div className={`lg:col-span-3 ${balanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
+                {/* 4. Reserva de Manutenção */}
+                <div className="lg:col-span-2 bg-gradient-to-br from-[#f59e0b] to-[#d97706] rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all">
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2.5 mb-2">
+                                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <Wrench className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-[10px] font-bold text-amber-100 uppercase tracking-widest">Manutenção da Impressora</span>
+                            </div>
+
+                            <div className="flex items-end justify-between gap-2">
+                                <div>
+                                    <p className="text-2xl font-black text-white tracking-tight truncate">{formatCurrency(cashFlow.maintenanceReserve)}</p>
+                                    <p className="text-[10px] font-bold text-amber-100 mt-1 flex items-center gap-1">
+                                        (Retido)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Total em Conta - Adjusted Col Span */}
+                <div className={`lg:col-span-2 ${balanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
                     <div className="relative z-10 h-full flex flex-col justify-between gap-4">
                         <div>
                             <div className="flex items-center justify-between mb-2">
@@ -165,8 +196,8 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                     </div>
                 </div >
 
-                {/* 4. Saldo Livre */}
-                <div className={`lg:col-span-3 ${freeBalanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
+                {/* 6. Saldo Livre - Adjusted Col Span */}
+                <div className={`lg:col-span-2 ${freeBalanceColorClass} rounded-[20px] shadow-md p-5 relative overflow-hidden text-white group hover:shadow-lg transition-all`}>
                     <div className="relative z-10 h-full flex flex-col justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2.5 mb-2">
