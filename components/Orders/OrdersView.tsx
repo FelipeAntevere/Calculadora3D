@@ -10,8 +10,12 @@ import {
     Search,
     Plus,
     ShoppingBag,
-    Copy
+    Copy,
+    LayoutGrid,
+    List
 } from 'lucide-react';
+import { DropResult } from '@hello-pangea/dnd';
+import { KanbanBoard } from './Kanban/KanbanBoard';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { Order, OrderStatus } from '../../types';
 import { MONTH_NAMES } from '../../constants';
@@ -65,7 +69,18 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     onNewOrder
 }) => {
     const [openStatusDropdownId, setOpenStatusDropdownId] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
     const currentYear = new Date().getFullYear();
+
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+
+        const { source, destination, draggableId } = result;
+
+        if (source.droppableId !== destination.droppableId) {
+            updateOrderStatusHandler(draggableId, destination.droppableId as OrderStatus);
+        }
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -75,13 +90,31 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                         <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Pedidos</h2>
                         <p className="text-slate-500 text-sm font-medium">Gerencie e acompanhe o status de todas as suas vendas.</p>
                     </div>
-                    <button
-                        onClick={onNewOrder}
-                        className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100"
-                    >
-                        <Plus size={20} />
-                        Novo Pedido
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white p-1 rounded-xl border border-slate-200 flex items-center shadow-sm">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                title="Visualização em Lista"
+                            >
+                                <List size={20} />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('kanban')}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                title="Visualização Kanban"
+                            >
+                                <LayoutGrid size={20} />
+                            </button>
+                        </div>
+                        <button
+                            onClick={onNewOrder}
+                            className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100"
+                        >
+                            <Plus size={20} />
+                            Novo Pedido
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search Bar */}
@@ -180,107 +213,118 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                 </div>
             </div>
 
-            <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div className="overflow-x-auto min-h-[400px]">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-slate-50 bg-slate-50/10">
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Data</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Cliente</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peça</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">UF</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Material</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Qtd</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peso</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Total</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {filteredOrdersList.length > 0 ? (
-                                filteredOrdersList.map((order) => (
-                                    <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-semibold text-slate-900">{formatDate(order.date)}</p>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-semibold text-slate-700">{order.customer}</p>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-medium text-slate-600 truncate max-w-[150px] mx-auto">{order.pieceName}</p>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-md">{order.state}</span>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-xs font-semibold text-slate-800">{order.material}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium">{order.color}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-center font-bold text-slate-900">{order.quantity}</td>
-                                        <td className="px-6 py-5 text-center font-bold text-slate-900">{order.weight}g</td>
-                                        <td className="px-6 py-5 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-sm font-bold text-sky-600">{formatCurrency(order.total)}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium italic">{order.quantity}x {formatCurrency(order.unitValue)}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => setOpenStatusDropdownId(openStatusDropdownId === order.id ? null : order.id)}
-                                                    className={`flex items-center justify-between gap-2 px-4 py-2 rounded-xl text-[11px] font-bold transition-all min-w-[130px] ${getStatusStyle(order.status)} hover:shadow-md active:scale-95`}
-                                                >
-                                                    {order.status.toUpperCase()}
-                                                    <ChevronDown size={14} className={`transition-transform duration-300 ${openStatusDropdownId === order.id ? 'rotate-180' : ''}`} />
-                                                </button>
-                                                {openStatusDropdownId === order.id && (
-                                                    <div className="absolute left-0 mt-3 w-48 bg-white border border-slate-100 rounded-[20px] shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
-                                                        {statusOptions.map((status) => (
-                                                            <button
-                                                                key={status}
-                                                                onClick={() => {
-                                                                    updateOrderStatusHandler(order.id, status as OrderStatus);
-                                                                    setOpenStatusDropdownId(null);
-                                                                }}
-                                                                className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${order.status === status ? 'bg-sky-50 text-sky-600' : 'text-slate-600 hover:bg-slate-50'
-                                                                    }`}
-                                                            >
-                                                                {status}
-                                                                {order.status === status && <Check size={14} />}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            <div className="flex justify-center items-center gap-1">
-                                                <button onClick={() => duplicateOrderHandler(order)} title="Duplicar Pedido" className="p-2.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all shadow-sm active:scale-90"><Copy size={16} /></button>
-                                                <button onClick={() => handleEditOrder(order)} title="Editar Pedido" className="p-2.5 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all shadow-sm active:scale-90"><Edit2 size={16} /></button>
-                                                <button onClick={() => deleteOrderHandler(order.id)} title="Excluir Pedido" className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm active:scale-90"><Trash2 size={16} /></button>
+            {viewMode === 'list' ? (
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                    <div className="overflow-x-auto min-h-[400px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-50 bg-slate-50/10">
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Data</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Cliente</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peça</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">UF</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Material</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Qtd</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peso</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Total</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
+                                    <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {filteredOrdersList.length > 0 ? (
+                                    filteredOrdersList.map((order) => (
+                                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-6 py-5 text-center">
+                                                <p className="text-sm font-semibold text-slate-900">{formatDate(order.date)}</p>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <p className="text-sm font-semibold text-slate-700">{order.customer}</p>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <p className="text-sm font-medium text-slate-600 truncate max-w-[150px] mx-auto">{order.pieceName}</p>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-md">{order.state}</span>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-xs font-semibold text-slate-800">{order.material}</span>
+                                                    <span className="text-[10px] text-slate-400 font-medium">{order.color}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center font-bold text-slate-900">{order.quantity}</td>
+                                            <td className="px-6 py-5 text-center font-bold text-slate-900">{order.weight}g</td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-sm font-bold text-sky-600">{formatCurrency(order.total)}</span>
+                                                    <span className="text-[10px] text-slate-400 font-medium italic">{order.quantity}x {formatCurrency(order.unitValue)}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => setOpenStatusDropdownId(openStatusDropdownId === order.id ? null : order.id)}
+                                                        className={`flex items-center justify-between gap-2 px-4 py-2 rounded-xl text-[11px] font-bold transition-all min-w-[130px] ${getStatusStyle(order.status)} hover:shadow-md active:scale-95`}
+                                                    >
+                                                        {order.status.toUpperCase()}
+                                                        <ChevronDown size={14} className={`transition-transform duration-300 ${openStatusDropdownId === order.id ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    {openStatusDropdownId === order.id && (
+                                                        <div className="absolute left-0 mt-3 w-48 bg-white border border-slate-100 rounded-[20px] shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
+                                                            {statusOptions.map((status) => (
+                                                                <button
+                                                                    key={status}
+                                                                    onClick={() => {
+                                                                        updateOrderStatusHandler(order.id, status as OrderStatus);
+                                                                        setOpenStatusDropdownId(null);
+                                                                    }}
+                                                                    className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${order.status === status ? 'bg-sky-50 text-sky-600' : 'text-slate-600 hover:bg-slate-50'
+                                                                        }`}
+                                                                >
+                                                                    {status}
+                                                                    {order.status === status && <Check size={14} />}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="flex justify-center items-center gap-1">
+                                                    <button onClick={() => duplicateOrderHandler(order)} title="Duplicar Pedido" className="p-2.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all shadow-sm active:scale-90"><Copy size={16} /></button>
+                                                    <button onClick={() => handleEditOrder(order)} title="Editar Pedido" className="p-2.5 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all shadow-sm active:scale-90"><Edit2 size={16} /></button>
+                                                    <button onClick={() => deleteOrderHandler(order.id)} title="Excluir Pedido" className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm active:scale-90"><Trash2 size={16} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={9} className="py-24 text-center">
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="bg-slate-50 p-4 rounded-full text-slate-300">
+                                                    <ShoppingBag size={40} />
+                                                </div>
+                                                <p className="text-slate-400 text-sm font-bold italic uppercase tracking-widest">Nenhum pedido encontrado</p>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={9} className="py-24 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="bg-slate-50 p-4 rounded-full text-slate-300">
-                                                <ShoppingBag size={40} />
-                                            </div>
-                                            <p className="text-slate-400 text-sm font-bold italic uppercase tracking-widest">Nenhum pedido encontrado</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <KanbanBoard
+                    orders={filteredOrdersList}
+                    statusOptions={statusOptions}
+                    onDragEnd={handleDragEnd}
+                    onCardClick={handleEditOrder}
+                    getStatusStyle={getStatusStyle}
+                    onDelete={deleteOrderHandler}
+                />
+            )}
         </div>
     );
 };

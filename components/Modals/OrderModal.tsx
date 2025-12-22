@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronDown, Check } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
 import { BRAZILIAN_STATES } from '../../constants';
+import { toLocalInputDate } from '../../utils/formatters';
 
 interface OrderModalProps {
     isOpen: boolean;
@@ -254,9 +255,16 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                     <div>
                         <label className="block text-sm font-bold text-slate-900 mb-2">Data do Pedido</label>
                         <input
-                            type="date"
-                            value={order.date ? order.date.split('T')[0] : ''}
-                            onChange={(e) => setOrder({ ...order, date: e.target.value })}
+                            type="datetime-local"
+                            value={toLocalInputDate(order.date || '')}
+                            onChange={(e) => {
+                                const date = new Date(e.target.value);
+                                if (!isNaN(date.getTime())) {
+                                    setOrder({ ...order, date: date.toISOString() });
+                                } else {
+                                    setOrder({ ...order, date: e.target.value });
+                                }
+                            }}
                             className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 focus:ring-2 focus:ring-[#0ea5e9]/10"
                         />
                     </div>

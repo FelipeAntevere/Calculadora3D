@@ -1,5 +1,5 @@
 
-export type OrderStatus = 'Orçamento' | 'Produção' | 'Finalizado' | 'Entregue' | 'Cancelado';
+export type OrderStatus = 'Pedidos' | 'Produção' | 'Finalizado' | 'Entregue' | 'Cancelado';
 
 export type FilamentMaterial = 'PLA' | 'PLA Silk' | 'ABS' | 'PETG' | 'TPU' | 'ASA' | 'Nylon' | 'Resina';
 

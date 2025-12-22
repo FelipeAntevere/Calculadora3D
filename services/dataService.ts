@@ -49,7 +49,7 @@ export const calculateDashboardMetrics = (
     }
   }
 
-  const activeOrders = orders.filter(o => o.status !== 'Cancelado' && o.status !== 'Orçamento');
+  const activeOrders = orders.filter(o => o.status !== 'Cancelado');
 
   activeOrders.forEach(order => {
     // Naive string parsing to avoid UTC issues
@@ -191,7 +191,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .order('date', { ascending: false });
+    .order('date', { ascending: true });
 
   if (error) throw error;
 
@@ -201,7 +201,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
     let cleanStatus = o.status;
     if (typeof cleanStatus === 'string') {
       if (cleanStatus.includes('Produ') && cleanStatus.includes('Ã')) cleanStatus = 'Produção';
-      else if (cleanStatus.includes('Or') && cleanStatus.includes('Ã')) cleanStatus = 'Orçamento';
+      else if ((cleanStatus.includes('Or') && cleanStatus.includes('Ã')) || cleanStatus === 'Orçamento' || cleanStatus === 'Pedido') cleanStatus = 'Pedidos';
     }
 
     return {

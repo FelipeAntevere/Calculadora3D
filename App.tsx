@@ -269,7 +269,7 @@ const App: React.FC = () => {
   };
 
   // Enums for UI selects and filters
-  const statusOptions: OrderStatus[] = ['Orçamento', 'Produção', 'Finalizado', 'Entregue', 'Cancelado'];
+  const statusOptions: OrderStatus[] = ['Pedidos', 'Produção', 'Finalizado', 'Entregue', 'Cancelado'];
   const materialOptions: FilamentMaterial[] = ['PLA', 'PLA Silk', 'ABS', 'PETG', 'TPU', 'ASA', 'Nylon', 'Resina'];
   const partCategoryOptions: PartCategory[] = ['Bico (Nozzle)', 'Mesa (Bed)', 'Correia', 'Ventilador', 'Sensor', 'Extrusora', 'Eletrônica', 'Outros'];
 
@@ -294,7 +294,13 @@ const App: React.FC = () => {
         o.state?.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesTime && matchesStatus && matchesSearch;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => {
+      const tA = new Date(a.date || 0).getTime();
+      const tB = new Date(b.date || 0).getTime();
+      const valA = isNaN(tA) ? 0 : tA;
+      const valB = isNaN(tB) ? 0 : tB;
+      return valA - valB;
+    });
   }, [orders, selectedYear, selectedMonth, selectedDay, statusFilter, searchQuery]);
 
   // Derived counts for Order tabs
@@ -327,7 +333,7 @@ const App: React.FC = () => {
   // UI Helper functions
   const getStatusStyle = (status: OrderStatus) => {
     switch (status) {
-      case 'Orçamento': return 'bg-slate-100 text-slate-600';
+      case 'Pedidos': return 'bg-slate-100 text-slate-600';
       case 'Produção': return 'bg-sky-50 text-sky-600';
       case 'Finalizado': return 'bg-emerald-50 text-emerald-600';
       case 'Entregue': return 'bg-indigo-50 text-indigo-600';
