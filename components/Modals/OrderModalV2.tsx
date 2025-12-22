@@ -16,10 +16,11 @@ interface OrderModalProps {
 }
 
 /**
- * Order Modal Component
+ * Order Modal Component (V2)
  * Handles the form for creating or editing orders.
+ * Version 2 created to resolve potential caching/build issues.
  */
-export const OrderModal: React.FC<OrderModalProps> = ({
+export const OrderModalV2: React.FC<OrderModalProps> = ({
     isOpen,
     onClose,
     order,
@@ -53,7 +54,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                 <div className="px-8 pt-8 pb-2 flex items-center justify-between">
                     <div className="flex flex-col gap-0.5">
                         <h3 className="text-2xl font-black text-slate-800">
-                            {editingOrderId ? 'Editar Pedido' : 'Novo Pedido'}
+                            {editingOrderId ? 'Editar Pedido (V2)' : 'Novo Pedido (V2)'}
                         </h3>
                         <p className="text-slate-400 text-sm font-medium">Preencha os dados abaixo.</p>
                     </div>
@@ -65,7 +66,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                     </button>
                 </div>
 
-                <div className="p-8 pb-40 max-h-[75vh] overflow-y-auto space-y-6">
+                <div className="p-8 pb-8 max-h-[75vh] overflow-y-auto space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-bold text-slate-900 mb-2">Cliente</label>
@@ -201,6 +202,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                     onChange={(e) => setOrder({ ...order, weight: parseFloat(e.target.value) || 0 })}
                                     className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
                                     placeholder="0"
+                                    readOnly={editingOrderId ? false : true} // Lock if creating from calculator to prevent confusion, or leave editable? Letting it be editable is better for UX.
                                 />
                             </div>
                             <div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Check, Clock, AlertCircle, Wallet, Calculator, TrendingUp, TrendingDown, Package, CreditCard } from 'lucide-react';
+import { DollarSign, Check, Clock, AlertCircle, Wallet, Calculator, TrendingUp, TrendingDown, Package, CreditCard, Wrench } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { ExpenseMetrics } from '../../hooks/useExpenseMetrics';
 
@@ -11,6 +11,7 @@ interface ExpenseSummaryCardsProps {
         inventoryCost: number;
         filamentCost: number;
         partsCost: number;
+        maintenanceReserve: number;
         balance: number;
     };
 }
@@ -43,6 +44,20 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                                 <Check size={10} strokeWidth={3} />
                                 Vendas confirmadas
                             </p>
+                        </div>
+
+                        {/* Maintenance Reserve Box - Moved to Revenue */}
+                        <div className="mt-3 bg-sky-50 border border-sky-100 rounded-xl p-2.5 relative group/reserve">
+                            <div className="absolute top-1 right-2 text-[8px] font-black text-sky-300 uppercase tracking-widest">Reserva</div>
+                            <div className="flex items-center gap-2">
+                                <div className="p-1 bg-sky-100 rounded-md">
+                                    <Wrench size={12} className="text-sky-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <p className="text-[9px] font-bold text-sky-400 leading-tight">Manutenção (Retido)</p>
+                                    <p className="text-sm font-black text-sky-600 leading-none">{formatCurrency(cashFlow.maintenanceReserve)}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -92,14 +107,19 @@ export const ExpenseSummaryCards: React.FC<ExpenseSummaryCardsProps> = ({ metric
                                 <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                                     <Wallet className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-bold text-sky-100 uppercase tracking-widest">Saldo em Caixa</span>
+                                <span className="text-[10px] font-bold text-sky-100 uppercase tracking-widest">Saldo Livre</span>
                             </div>
-                            <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(cashFlow.balance)}</p>
-                            <p className="text-[10px] font-medium text-sky-100 mt-1 opacity-90">Lucro Real Disponível</p>
+                            <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(cashFlow.balance - cashFlow.maintenanceReserve)}</p>
+                            <div className="mt-1 flex flex-col gap-0.5">
+                                <p className="text-[10px] font-medium text-sky-100 opacity-90">Descontando reserva</p>
+                                <p className="text-[10px] font-medium text-sky-200">
+                                    Total Físico: <span className="font-bold text-white">{formatCurrency(cashFlow.balance)}</span>
+                                </p>
+                            </div>
                         </div>
                         <div className="mt-3 pt-2.5 border-t border-white/20 flex flex-col gap-0.5">
                             <span className="text-[9px] font-bold text-sky-200 uppercase">Saldo Previsto (Pós Contas)</span>
-                            <span className="text-base font-bold text-white">{formatCurrency(projectedBalance)}</span>
+                            <span className="text-base font-bold text-white">{formatCurrency(projectedBalance - cashFlow.maintenanceReserve)}</span>
                         </div>
                     </div>
                 </div>

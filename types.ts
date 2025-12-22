@@ -70,6 +70,7 @@ export interface Order {
   laborTime: number;
   shippingDate?: string;
   materialCost?: number;
+  maintenanceCost?: number; // Custo de manutenção reservado
   productionDate?: string;
   completionDate?: string;
   deliveryDate?: string;

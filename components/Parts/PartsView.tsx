@@ -5,7 +5,9 @@ import {
     Trash2,
     Wrench,
     Copy,
-    Database
+    Database,
+    AlertTriangle,
+    CheckCircle
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { ReplacementPart } from '../../types';
@@ -47,7 +49,7 @@ export const PartsView: React.FC<PartsViewProps> = ({
         : replacementParts.filter(part => part.category === categoryFilter);
 
     const totalPartsCount = filteredParts.reduce((acc, part) => acc + part.quantity, 0);
-    const totalPartsValue = filteredParts.reduce((acc, part) => acc + (part.quantity * part.unitCost), 0);
+    const lowStockCount = filteredParts.filter(part => part.quantity <= 1).length;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -77,14 +79,39 @@ export const PartsView: React.FC<PartsViewProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-100 transition-all">
-                    <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Valor em Estoque</p>
-                        <h3 className="text-3xl font-bold text-slate-900">{formatCurrency(totalPartsValue)}</h3>
+                <div className={`p-6 rounded-[32px] border shadow-sm flex flex-col justify-between transition-all ${lowStockCount > 0 ? 'bg-white border-rose-100 hover:border-rose-200' : 'bg-white border-emerald-100 hover:border-emerald-200'}`}>
+                    <div className="flex items-start justify-between mb-4">
+                        <div>
+                            <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-1 ${lowStockCount > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                {lowStockCount > 0 ? 'Repor Imediatamente' : 'Estoque Saudável'}
+                            </p>
+                            {lowStockCount > 0 ? (
+                                <div className="space-y-1">
+                                    {filteredParts.filter(p => p.quantity <= 1).slice(0, 3).map(part => (
+                                        <div key={part.id} className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                            {part.name} <span className="text-rose-500 text-xs">({part.quantity} un)</span>
+                                        </div>
+                                    ))}
+                                    {lowStockCount > 3 && (
+                                        <p className="text-xs text-rose-500 font-bold pl-3.5">+ outros {lowStockCount - 3} itens</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 mt-2">
+                                    <h3 className="text-xl font-bold text-emerald-600">Tudo em dia!</h3>
+                                </div>
+                            )}
+                        </div>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${lowStockCount > 0 ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                            {lowStockCount > 0 ? <AlertTriangle size={24} /> : <CheckCircle size={24} />}
+                        </div>
                     </div>
-                    <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                        <Database size={28} />
-                    </div>
+                    {lowStockCount > 0 && (
+                        <div className="mt-2 pt-3 border-t border-rose-50">
+                            <p className="text-[10px] text-rose-400 font-semibold text-right">Verificar lista completa</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

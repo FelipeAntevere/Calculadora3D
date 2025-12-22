@@ -233,6 +233,7 @@ export const upsertOrder = async (order: Partial<Order>) => {
     shipping_date: order.shippingDate || null,
     date: order.date || null,
     material_cost: order.materialCost,
+    maintenance_cost: order.maintenanceCost, // NEW MAPPING
     production_date: order.productionDate || null,
     completion_date: order.completionDate || null,
     delivery_date: order.deliveryDate || null
@@ -246,6 +247,7 @@ export const upsertOrder = async (order: Partial<Order>) => {
   delete (orderData as any).laborTime;
   delete (orderData as any).shippingDate;
   delete (orderData as any).materialCost;
+  delete (orderData as any).maintenanceCost; // NEW DELETION
   delete (orderData as any).productionDate;
   delete (orderData as any).completionDate;
   delete (orderData as any).deliveryDate;
@@ -270,7 +272,8 @@ export const upsertOrder = async (order: Partial<Order>) => {
     shippingDate: data.shipping_date,
     productionDate: data.production_date,
     completionDate: data.completion_date,
-    deliveryDate: data.delivery_date
+    deliveryDate: data.delivery_date,
+    maintenanceCost: data.maintenance_cost // NEW RETURN MAPPING
   } as Order;
 };
 

@@ -34,6 +34,7 @@ interface ExpensesViewProps {
         inventoryCost: number;
         filamentCost: number;
         partsCost: number;
+        maintenanceReserve: number;
         balance: number;
     };
 }

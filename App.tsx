@@ -42,7 +42,7 @@ import { PartsView } from './components/Parts/PartsView';
 import { ExpensesView } from './components/Expenses/ExpensesView';
 
 // Modals
-import { OrderModal } from './components/Modals/OrderModal';
+import { OrderModalV2 as OrderModal } from './components/Modals/OrderModalV2';
 import { FilamentModal } from './components/Modals/FilamentModal';
 import { PartModal } from './components/Modals/PartModal';
 import { ExpenseModal } from './components/Modals/ExpenseModal';
@@ -358,12 +358,32 @@ const App: React.FC = () => {
   };
 
   const onSaveOrder = async () => {
-    if (!newOrder.customer || !newOrder.pieceName || !newOrder.material || !newOrder.status || !newOrder.state) {
-      alert('Preencha os dados obrigatórios.'); return;
+    try {
+      const missing = [];
+      if (!newOrder.customer) missing.push('Cliente');
+      if (!newOrder.pieceName) missing.push('Nome da Peça');
+      if (!newOrder.material) missing.push('Material');
+      if (!newOrder.status) missing.push('Status');
+      if (!newOrder.state) missing.push('Estado');
+
+      if (missing.length > 0) {
+        alert(`Preencha os campos obrigatórios: ${missing.join(', ')}`);
+        return;
+      }
+      const total = ((newOrder.quantity || 1) * (newOrder.unitValue || 0)) + (newOrder.freight || 0);
+
+      // Calculate maintenance cost reserve
+      // Maintenance = Time * Rate * Quantity (assuming time is per unit)
+      // Rate comes from current calculator state (best approximation for new orders)
+      const maintenanceCost = (newOrder.time || 0) * (newOrder.quantity || 1) * calcResults.hourlyMaintenanceRate;
+
+      console.log('Saving order with payload:', { ...newOrder, total, maintenanceCost });
+      await saveOrder({ ...newOrder, total, maintenanceCost });
+      setIsOrderModalOpen(false);
+    } catch (error) {
+      console.error('CRITICAL SAVE ERROR:', error);
+      alert(`Erro ao salvar pedido: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
     }
-    const total = ((newOrder.quantity || 1) * (newOrder.unitValue || 0)) + (newOrder.freight || 0);
-    await saveOrder({ ...newOrder, total });
-    setIsOrderModalOpen(false);
   };
 
   const onGenerateSummary = () => {
@@ -417,15 +437,27 @@ const App: React.FC = () => {
 
     const inventoryCost = filamentCost + partsCost;
 
+    // 5. Maintenance Reserve (Sinking Fund)
+    const maintenanceReserve = orders
+      .filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status))
+      .reduce((acc, curr) => {
+        if (curr.maintenanceCost !== undefined) {
+          return acc + curr.maintenanceCost;
+        }
+        // Fallback for old orders
+        return acc + ((curr.time || 0) * (curr.quantity || 1) * calcResults.hourlyMaintenanceRate);
+      }, 0);
+
     return {
       revenue,
       paidExpenses,
       inventoryCost,
       filamentCost,
       partsCost,
+      maintenanceReserve,
       balance: revenue - paidExpenses - inventoryCost
     };
-  }, [orders, expenses, filaments, parts]);
+  }, [orders, expenses, filaments, parts, calcResults.hourlyMaintenanceRate]);
 
   if (authLoading) {
     return (
