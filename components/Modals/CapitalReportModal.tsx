@@ -201,9 +201,9 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white w-full max-w-4xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="relative bg-white dark:bg-slate-800 w-full max-w-4xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="bg-slate-800 p-8 text-white flex justify-between items-center shrink-0">
+                <div className="bg-slate-800 dark:bg-slate-900 p-8 text-white flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner">
                             <FileText className="w-8 h-8 text-sky-400" />
@@ -215,9 +215,9 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
                                 <select
                                     value={selectedYear}
                                     onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                    className="bg-white/10 border border-white/10 rounded-lg text-white text-xs font-bold px-2 py-1 outline-none focus:ring-1 focus:ring-sky-400"
+                                    className="bg-white/10 border border-white/10 rounded-lg text-white text-xs font-bold px-2 py-1 outline-none focus:ring-1 focus:ring-sky-400 dark:bg-slate-800"
                                 >
-                                    {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y} className="text-slate-800">{y}</option>)}
+                                    {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y} className="text-slate-800 dark:text-slate-200">{y}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -237,74 +237,74 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50">
+                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-slate-900/50">
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Faturamento</h4>
-                            <p className="text-2xl font-black text-slate-800">{formatCurrency(yearlyData.totals.revenue)}</p>
+                            <p className="text-2xl font-black text-slate-800 dark:text-white">{formatCurrency(yearlyData.totals.revenue)}</p>
                             <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-2 inline-block">
                                 {yearlyData.totals.orders} Pedidos
                             </span>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Despesas Pagas</h4>
-                            <p className="text-2xl font-black text-rose-600">{formatCurrency(yearlyData.totals.expenses)}</p>
+                            <p className="text-2xl font-black text-rose-600 dark:text-rose-400">{formatCurrency(yearlyData.totals.expenses)}</p>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Lucro Operacional</h4>
-                            <p className={`text-2xl font-black ${yearlyData.totals.revenue - yearlyData.totals.expenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            <p className={`text-2xl font-black ${yearlyData.totals.revenue - yearlyData.totals.expenses >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                 {formatCurrency(yearlyData.totals.revenue - yearlyData.totals.expenses)}
                             </p>
                             <p className="text-[10px] text-slate-400 mt-1">(Receita - Despesas)</p>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Aportes Líquidos</h4>
-                            <p className="text-2xl font-black text-sky-600">{formatCurrency(yearlyData.totals.injections - yearlyData.totals.withdrawals)}</p>
+                            <p className="text-2xl font-black text-sky-600 dark:text-sky-400">{formatCurrency(yearlyData.totals.injections - yearlyData.totals.withdrawals)}</p>
                             <div className="flex gap-2 text-[10px] mt-1">
-                                <span className="text-emerald-600">+{formatCurrency(yearlyData.totals.injections)}</span>
-                                <span className="text-rose-600">-{formatCurrency(yearlyData.totals.withdrawals)}</span>
+                                <span className="text-emerald-600 dark:text-emerald-400">+{formatCurrency(yearlyData.totals.injections)}</span>
+                                <span className="text-rose-600 dark:text-rose-400">-{formatCurrency(yearlyData.totals.withdrawals)}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Detailed Table */}
-                    <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="bg-white dark:bg-slate-800 rounded-[24px] border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 font-bold text-slate-500">Mês</th>
-                                    <th className="px-6 py-4 font-bold text-slate-500 text-right">Receita</th>
-                                    <th className="px-6 py-4 font-bold text-slate-500 text-center">Pedidos</th>
-                                    <th className="px-6 py-4 font-bold text-slate-500 text-right">Despesas</th>
-                                    <th className="px-6 py-4 font-bold text-slate-500 text-right">Lucro</th>
-                                    <th className="px-6 py-4 font-bold text-slate-500 text-right">Aportes</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400">Mês</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 text-right">Receita</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 text-center">Pedidos</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 text-right">Despesas</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 text-right">Lucro</th>
+                                    <th className="px-6 py-4 font-bold text-slate-500 dark:text-slate-400 text-right">Aportes</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                                 {yearlyData.buckets.map((b, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-bold text-slate-700">{MONTH_NAMES[i]}</td>
-                                        <td className="px-6 py-4 text-right font-medium text-slate-600">{formatCurrency(b.revenue)}</td>
-                                        <td className="px-6 py-4 text-center font-medium text-slate-500">{b.orders}</td>
-                                        <td className="px-6 py-4 text-right font-medium text-rose-600">{formatCurrency(b.expenses)}</td>
-                                        <td className={`px-6 py-4 text-right font-bold ${b.revenue - b.expenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200">{MONTH_NAMES[i]}</td>
+                                        <td className="px-6 py-4 text-right font-medium text-slate-600 dark:text-slate-300">{formatCurrency(b.revenue)}</td>
+                                        <td className="px-6 py-4 text-center font-medium text-slate-500 dark:text-slate-400">{b.orders}</td>
+                                        <td className="px-6 py-4 text-right font-medium text-rose-600 dark:text-rose-400">{formatCurrency(b.expenses)}</td>
+                                        <td className={`px-6 py-4 text-right font-bold ${b.revenue - b.expenses >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                             {formatCurrency(b.revenue - b.expenses)}
                                         </td>
-                                        <td className="px-6 py-4 text-right font-medium text-sky-600">
+                                        <td className="px-6 py-4 text-right font-medium text-sky-600 dark:text-sky-400">
                                             {formatCurrency(b.injections - b.withdrawals)}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot className="bg-slate-50/80 font-bold text-slate-800">
+                            <tfoot className="bg-slate-50/80 dark:bg-slate-800/80 font-bold text-slate-800 dark:text-white">
                                 <tr>
                                     <td className="px-6 py-4">TOTAL</td>
                                     <td className="px-6 py-4 text-right">{formatCurrency(yearlyData.totals.revenue)}</td>
                                     <td className="px-6 py-4 text-center">{yearlyData.totals.orders}</td>
-                                    <td className="px-6 py-4 text-right text-rose-600">{formatCurrency(yearlyData.totals.expenses)}</td>
-                                    <td className="px-6 py-4 text-right text-emerald-600">{formatCurrency(yearlyData.totals.revenue - yearlyData.totals.expenses)}</td>
-                                    <td className="px-6 py-4 text-right text-sky-600">{formatCurrency(yearlyData.totals.injections - yearlyData.totals.withdrawals)}</td>
+                                    <td className="px-6 py-4 text-right text-rose-600 dark:text-rose-400">{formatCurrency(yearlyData.totals.expenses)}</td>
+                                    <td className="px-6 py-4 text-right text-emerald-600 dark:text-emerald-400">{formatCurrency(yearlyData.totals.revenue - yearlyData.totals.expenses)}</td>
+                                    <td className="px-6 py-4 text-right text-sky-600 dark:text-sky-400">{formatCurrency(yearlyData.totals.injections - yearlyData.totals.withdrawals)}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -320,22 +320,22 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
                             {injections
                                 .filter(i => new Date(i.date).getFullYear() === selectedYear)
                                 .map((item) => (
-                                    <div key={item.id} className="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between">
+                                    <div key={item.id} className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${item.amount >= 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                                                {item.amount >= 0 ? <ArrowUpRight size={14} className="text-emerald-500" /> : <ArrowDownLeft size={14} className="text-rose-500" />}
+                                            <div className={`p-2 rounded-lg ${item.amount >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30' : 'bg-rose-50 dark:bg-rose-900/30'}`}>
+                                                {item.amount >= 0 ? <ArrowUpRight size={14} className="text-emerald-500 dark:text-emerald-400" /> : <ArrowDownLeft size={14} className="text-rose-500 dark:text-rose-400" />}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-sm text-slate-700">{item.description}</p>
+                                                <p className="font-bold text-sm text-slate-700 dark:text-slate-300">{item.description}</p>
                                                 <p className="text-[10px] text-slate-400">{new Date(item.date).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className={`font-bold text-sm ${item.amount >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            <span className={`font-bold text-sm ${item.amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                                 {formatCurrency(item.amount)}
                                             </span>
                                             {onDelete && (
-                                                <button onClick={() => handleDelete(item.id)} className="text-slate-300 hover:text-rose-500">
+                                                <button onClick={() => handleDelete(item.id)} className="text-slate-300 hover:text-rose-500 dark:text-slate-600 dark:hover:text-rose-400">
                                                     <Trash2 size={14} />
                                                 </button>
                                             )}

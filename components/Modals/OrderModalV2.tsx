@@ -50,17 +50,17 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                 className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
                 onClick={onClose}
             ></div>
-            <div className="relative bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="px-8 pt-8 pb-2 flex items-center justify-between">
                     <div className="flex flex-col gap-0.5">
-                        <h3 className="text-2xl font-black text-slate-800">
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                             {editingOrderId ? 'Editar Pedido (V2)' : 'Novo Pedido (V2)'}
                         </h3>
                         <p className="text-slate-400 text-sm font-medium">Preencha os dados abaixo.</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
                     >
                         <X className="w-5 h-5 text-slate-400" />
                     </button>
@@ -69,42 +69,42 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                 <div className="p-8 pb-8 max-h-[75vh] overflow-y-auto space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Cliente</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cliente</label>
                             <input
                                 type="text"
                                 placeholder="Nome do cliente"
                                 value={order.customer || ''}
                                 onChange={(e) => setOrder({ ...order, customer: e.target.value })}
-                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white placeholder:text-slate-400"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Nome da Peça</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Nome da Peça</label>
                             <input
                                 type="text"
                                 placeholder="Ex: Suporte de Fone"
                                 value={order.pieceName || ''}
                                 onChange={(e) => setOrder({ ...order, pieceName: e.target.value })}
-                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white placeholder:text-slate-400"
                             />
                         </div>
                         <div className="relative">
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Material</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Material</label>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsOrderMaterialDropdownOpen(!isOrderMaterialDropdownOpen)}
-                                    className="w-full flex items-center justify-between bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700"
+                                    className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     {order.material || 'Selecione...'}
                                     <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isOrderMaterialDropdownOpen ? 'rotate-180' : '')} />
                                 </button>
                                 {isOrderMaterialDropdownOpen && (
-                                    <div className="absolute left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 origin-top overflow-hidden">
+                                    <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 origin-top overflow-hidden">
                                         {materialOptions.map((mat) => (
                                             <button
                                                 key={mat}
                                                 onClick={() => { setOrder({ ...order, material: mat }); setIsOrderMaterialDropdownOpen(false); }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                                             >
                                                 <div className="w-4">{order.material === mat && <Check className="w-3.5 h-3.5 text-[#0ea5e9]" />}</div>
                                                 <span>{mat}</span>
@@ -115,32 +115,32 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Cor</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cor</label>
                             <input
                                 type="text"
                                 placeholder="Ex: Preto Matte"
                                 value={order.color || ''}
                                 onChange={(e) => setOrder({ ...order, color: e.target.value })}
-                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white placeholder:text-slate-400"
                             />
                         </div>
                         <div className="relative">
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Estado</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Estado</label>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
-                                    className="w-full flex items-center justify-between bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700"
+                                    className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     {order.state || 'UF'}
                                     <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isStateDropdownOpen ? 'rotate-180' : '')} />
                                 </button>
                                 {isStateDropdownOpen && (
-                                    <div className="absolute left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top max-h-48 overflow-y-auto">
+                                    <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top max-h-48 overflow-y-auto">
                                         {BRAZILIAN_STATES.map((st) => (
                                             <button
                                                 key={st.sigla}
                                                 onClick={() => { setOrder({ ...order, state: st.sigla }); setIsStateDropdownOpen(false); }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                                             >
                                                 <div className="w-4">{order.state === st.sigla && <Check className="w-3.5 h-3.5 text-[#0ea5e9]" />}</div>
                                                 <span>{st.nome} ({st.sigla})</span>
@@ -151,32 +151,32 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Quantidade</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Quantidade</label>
                             <input
                                 type="number"
                                 value={order.quantity || ''}
                                 onChange={(e) => setOrder({ ...order, quantity: parseInt(e.target.value) || 0 })}
-                                className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                 placeholder="1"
                             />
                         </div>
                         <div className="col-span-1 relative">
-                            <label className="block text-sm font-bold text-slate-900 mb-2">Status</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Status</label>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsOrderStatusDropdownOpen(!isOrderStatusDropdownOpen)}
-                                    className="w-full flex items-center justify-between bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700"
+                                    className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     {order.status || 'Selecione...'}
                                     <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isOrderStatusDropdownOpen ? 'rotate-180' : '')} />
                                 </button>
                                 {isOrderStatusDropdownOpen && (
-                                    <div className="absolute left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top overflow-hidden">
+                                    <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top overflow-hidden">
                                         {statusOptions.map((opt) => (
                                             <button
                                                 key={opt}
                                                 onClick={() => { setOrder({ ...order, status: opt as OrderStatus }); setIsOrderStatusDropdownOpen(false); }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                                             >
                                                 <div className="w-4">{order.status === opt && <Check className="w-3.5 h-3.5 text-[#0ea5e9]" />}</div>
                                                 <span>{opt}</span>
@@ -188,74 +188,74 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                         </div>
                     </div>
 
-                    <hr className="border-slate-50" />
+                    <hr className="border-slate-50 dark:border-slate-700" />
 
                     <div className="space-y-6">
-                        <h4 className="text-base font-black text-slate-800 tracking-tight">Detalhes Técnicos e Financeiros</h4>
+                        <h4 className="text-base font-black text-slate-800 dark:text-white tracking-tight">Detalhes Técnicos e Financeiros</h4>
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Peso Aproximado (g)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Peso Aproximado (g)</label>
                                 <input
                                     type="number"
                                     step="0.1"
                                     value={order.weight || ''}
                                     onChange={(e) => setOrder({ ...order, weight: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0"
                                     readOnly={editingOrderId ? false : true} // Lock if creating from calculator to prevent confusion, or leave editable? Letting it be editable is better for UX.
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Tempo de Impressão Unitário (h)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Tempo de Impressão Unitário (h)</label>
                                 <input
                                     type="number"
                                     step="0.1"
                                     value={order.time || ''}
                                     onChange={(e) => setOrder({ ...order, time: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Custo Unitário (R$)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Custo Unitário (R$)</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={order.unitCost || ''}
                                     onChange={(e) => setOrder({ ...order, unitCost: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0.00"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Venda Unitário (R$)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Venda Unitário (R$)</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={order.unitValue || ''}
                                     onChange={(e) => setOrder({ ...order, unitValue: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0.00"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Frete (R$)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Frete (R$)</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={order.freight || ''}
                                     onChange={(e) => setOrder({ ...order, freight: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
+                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0.00"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <hr className="border-slate-50" />
+                    <hr className="border-slate-50 dark:border-slate-700" />
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-900 mb-2">Data do Pedido</label>
+                        <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Data do Pedido</label>
                         <input
                             type="datetime-local"
                             value={toLocalInputDate(order.date || '')}
@@ -267,21 +267,21 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                     setOrder({ ...order, date: e.target.value });
                                 }
                             }}
-                            className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 focus:ring-2 focus:ring-[#0ea5e9]/10"
+                            className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 dark:[color-scheme:dark]"
                         />
                     </div>
                 </div>
 
-                <div className="px-8 pb-8 pt-4 flex items-center justify-end gap-3 border-t border-slate-50 bg-slate-50/50">
+                <div className="px-8 pb-8 pt-4 flex items-center justify-end gap-3 border-t border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                        className="px-6 py-3 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={onSave}
-                        className="px-8 py-3 bg-[#0ea5e9] text-white rounded-2xl text-sm font-black shadow-lg shadow-sky-100 hover:bg-[#0284c7] transform active:scale-95 transition-all"
+                        className="px-8 py-3 bg-[#0ea5e9] text-white rounded-2xl text-sm font-black shadow-lg shadow-sky-100 dark:shadow-sky-900/20 hover:bg-[#0284c7] transform active:scale-95 transition-all"
                     >
                         {editingOrderId ? 'Salvar Alterações' : 'Salvar Pedido'}
                     </button>

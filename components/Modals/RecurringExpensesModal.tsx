@@ -95,26 +95,26 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
-            <div className="relative bg-white w-full max-w-3xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="relative bg-white dark:bg-slate-800 w-full max-w-3xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 <div className="px-8 pt-8 pb-4 flex items-center justify-between shrink-0">
                     <div className="flex flex-col gap-1">
-                        <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                        <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
                             <Repeat className="w-5 h-5 text-sky-500" />
                             Despesas Fixas
                         </h3>
                         <p className="text-slate-400 text-xs font-medium">Gerencie contas que se repetem todo mês.</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
                         <X className="w-5 h-5 text-slate-400" />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-8 pb-8">
                     {/* Form to Add New */}
-                    <form onSubmit={handleSubmit} className={`p-6 rounded-2xl mb-8 border transition-colors ${editingId ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'}`}>
+                    <form onSubmit={handleSubmit} className={`p-6 rounded-2xl mb-8 border transition-colors ${editingId ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50' : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700'}`}>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                             <div className="md:col-span-5">
-                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700' : 'text-slate-900'}`}>
+                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-slate-300'}`}>
                                     {editingId ? 'Editando Despesa' : 'Descrição'}
                                 </label>
                                 <input
@@ -122,12 +122,12 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                     placeholder="Ex: Aluguel"
                                     value={newTemplate.description}
                                     onChange={e => setNewTemplate({ ...newTemplate, description: e.target.value })}
-                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
                                     required
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700' : 'text-slate-900'}`}>Dia</label>
+                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-slate-300'}`}>Dia</label>
                                 <input
                                     type="number"
                                     min="1"
@@ -135,11 +135,11 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                     placeholder="Dia"
                                     value={newTemplate.defaultDay || ''}
                                     onChange={e => setNewTemplate({ ...newTemplate, defaultDay: parseInt(e.target.value) || undefined })}
-                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500/20 outline-none font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
                                 />
                             </div>
                             <div className="md:col-span-4">
-                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700' : 'text-slate-900'}`}>Valor (R$)</label>
+                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-slate-300'}`}>Valor (R$)</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
@@ -158,7 +158,7 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                             setNewTemplate({ ...newTemplate, defaultAmount: realValue });
                                         }
                                     }}
-                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-sky-500/20 outline-none placeholder:text-slate-300"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500/20 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-500"
                                 />
                             </div>
                             <div className="md:col-span-1 flex gap-2">
@@ -176,7 +176,7 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                     <button
                                         type="button"
                                         onClick={handleCancelEdit}
-                                        className="h-[42px] px-3 bg-slate-200 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-300 transition-colors"
+                                        className="h-[42px] px-3 bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                                         title="Cancelar Edição"
                                     >
                                         <X className="w-5 h-5" />
@@ -188,9 +188,9 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
 
                     {/* List */}
                     <div className="space-y-3">
-                        <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight mb-4">Modelos Salvos</h4>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-300 uppercase tracking-tight mb-4">Modelos Salvos</h4>
                         {templates.length === 0 ? (
-                            <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                                 <Repeat className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                                 <p className="text-slate-500 font-medium">Nenhuma despesa fixa criada</p>
                                 <p className="text-slate-400 text-xs mt-1">Adicione despesas que se repetem todo mês.</p>
@@ -198,32 +198,32 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                         ) : (
                             <div className="grid gap-3">
                                 {templates.map(template => (
-                                    <div key={template.id} className={`bg-white border rounded-xl p-4 flex items-center justify-between hover:shadow-md transition-all group ${editingId === template.id ? 'border-amber-200 ring-2 ring-amber-100' : 'border-slate-100'}`}>
+                                    <div key={template.id} className={`bg-white dark:bg-slate-800 border rounded-xl p-4 flex items-center justify-between hover:shadow-md transition-all group ${editingId === template.id ? 'border-amber-200 dark:border-amber-700 ring-2 ring-amber-100 dark:ring-amber-900/30' : 'border-slate-100 dark:border-slate-700'}`}>
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 font-bold text-xs shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 font-bold text-xs shrink-0">
                                                 {template.defaultDay ? `${template.defaultDay}` : '?'}
                                             </div>
                                             <div>
-                                                <h5 className="font-bold text-slate-800 text-sm">{template.description}</h5>
+                                                <h5 className="font-bold text-slate-800 dark:text-white text-sm">{template.description}</h5>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="text-right mr-4">
                                                 <span className="block text-xs font-bold text-slate-400 uppercase">Valor Padrão</span>
-                                                <span className="font-bold text-slate-700">
-                                                    {template.defaultAmount ? formatCurrency(template.defaultAmount) : <span className="text-slate-300 italic">Variável</span>}
+                                                <span className="font-bold text-slate-700 dark:text-slate-300">
+                                                    {template.defaultAmount ? formatCurrency(template.defaultAmount) : <span className="text-slate-300 dark:text-slate-500 italic">Variável</span>}
                                                 </span>
                                             </div>
                                             <button
                                                 onClick={() => handleEdit(template)}
-                                                className="p-2 text-slate-300 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                                                className="p-2 text-slate-300 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
                                                 title="Editar"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => onRemoveTemplate(template.id)}
-                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
                                                 title="Remover"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -235,9 +235,9 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                         )}
                     </div>
 
-                    <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0 mt-8 rounded-2xl">
+                    <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex items-center justify-between shrink-0 mt-8 rounded-2xl">
                         <p className="text-xs text-slate-500 font-medium max-w-[50%]">
-                            As despesas serão criadas como "Pendentes" em <span className="text-slate-900 font-bold">{monthName} de {year}</span>.
+                            As despesas serão criadas como "Pendentes" em <span className="text-slate-900 dark:text-white font-bold">{monthName} de {year}</span>.
                         </p>
                         <button
                             onClick={onGenerate}

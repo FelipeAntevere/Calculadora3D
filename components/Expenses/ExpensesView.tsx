@@ -113,27 +113,27 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Contas a Pagar</h2>
+                    <h2 className="text-2xl font-bold text-[#0f172a] dark:text-white tracking-tight">Contas a Pagar</h2>
                     <p className="text-slate-500 text-sm font-medium">Gerencie suas despesas e fluxo de caixa.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onOpenReportModal}
-                        className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                        className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95"
                     >
                         <FileText size={18} className="text-emerald-500" />
                         Relatório
                     </button>
                     <button
                         onClick={onOpenRecurringModal}
-                        className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                        className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95"
                     >
                         <Repeat size={18} className="text-sky-500" />
                         Despesas Fixas
                     </button>
                     <button
                         onClick={onNewExpense}
-                        className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100 active:scale-95"
+                        className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100 dark:shadow-sky-900/20 active:scale-95"
                     >
                         <Plus size={20} />
                         Nova Conta
@@ -142,7 +142,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             </div>
 
             {/* Filters Relocated to Top */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col md:flex-row items-center gap-4">
                 <div className="flex items-center gap-2 text-slate-400 mr-2">
                     <Filter className="w-4 h-4" />
                     <span className="text-xs font-bold uppercase tracking-widest">Filtros</span>
@@ -153,7 +153,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                         <select
                             value={expenseMonthFilter}
                             onChange={(e) => setExpenseMonthFilter(Number(e.target.value))}
-                            className="bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
+                            className="bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
                         >
                             <option value={-1}>Todos</option>
                             {MONTH_NAMES.map((name, i) => <option key={name} value={i}>{name}</option>)}
@@ -164,7 +164,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                         <select
                             value={expenseYearFilter}
                             onChange={(e) => setExpenseYearFilter(Number(e.target.value))}
-                            className="bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
+                            className="bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
                         >
                             {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
                         </select>
@@ -172,7 +172,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
 
                 <div className="md:ml-auto">
-                    <div className="bg-sky-50 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2">
+                    <div className="bg-sky-50 dark:bg-sky-900/20 px-4 py-2 rounded-xl border border-sky-100 dark:border-sky-900/50 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
                         <span className="text-xs font-bold text-sky-600">{filteredExpenses.length} contas encontradas</span>
                     </div>
@@ -188,10 +188,10 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
             {/* New Production Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-700">Total de Pedidos</h3>
-                        <div className="bg-amber-50 p-2 rounded-xl">
+                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Total de Pedidos</h3>
+                        <div className="bg-amber-50 dark:bg-amber-900/30 p-2 rounded-xl">
                             <ShoppingBag size={20} className="text-amber-500" />
                         </div>
                     </div>
@@ -201,23 +201,23 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-700">Ticket Médio</h3>
-                        <div className="bg-indigo-50 p-2 rounded-xl">
+                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Ticket Médio</h3>
+                        <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded-xl">
                             <Users size={20} className="text-indigo-500" />
                         </div>
                     </div>
                     <div>
-                        <span className="text-2xl font-black text-slate-800 block mb-1">{formatCurrency(cashFlow.averageTicket || 0)}</span>
+                        <span className="text-2xl font-black text-slate-800 dark:text-white block mb-1">{formatCurrency(cashFlow.averageTicket || 0)}</span>
                         <p className="text-slate-400 text-xs font-medium">Valor médio por pedido</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-700">Custo de Filamento</h3>
-                        <div className="bg-rose-50 p-2 rounded-xl">
+                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Custo de Filamento</h3>
+                        <div className="bg-rose-50 dark:bg-rose-900/30 p-2 rounded-xl">
                             <Database size={20} className="text-rose-500" />
                         </div>
                     </div>
@@ -227,26 +227,26 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-700">Total de Horas</h3>
-                        <div className="bg-slate-50 p-2 rounded-xl">
+                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Total de Horas</h3>
+                        <div className="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl">
                             <Clock size={20} className="text-slate-500" />
                         </div>
                     </div>
                     <div>
-                        <span className="text-2xl font-black text-slate-800 block mb-1">{(cashFlow.totalPrintingHours || 0).toFixed(1)}h</span>
+                        <span className="text-2xl font-black text-slate-800 dark:text-white block mb-1">{(cashFlow.totalPrintingHours || 0).toFixed(1)}h</span>
                         <p className="text-slate-400 text-xs font-medium">Tempo total de impressão</p>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div className="bg-white dark:bg-slate-800 rounded-[32px] border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50">
                 <div className="">
                     <table className="w-full text-left border-collapse">
                         {/* Table Header */}
                         <thead>
-                            <tr className="border-b border-slate-50 bg-slate-50/30">
+                            <tr className="border-b border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/50">
                                 <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome da Conta</th>
                                 <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Vencimento</th>
                                 <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Pagamento</th>
@@ -255,12 +255,12 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                 <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {filteredExpenses.length > 0 ? (
                                 filteredExpenses.map((expense) => (
-                                    <tr key={expense.id} className="hover:bg-slate-50 transition-colors group">
+                                    <tr key={expense.id} className="hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors group">
                                         <td className="px-6 py-4 text-center">
-                                            <span className="font-bold text-slate-700 text-sm">{expense.description}</span>
+                                            <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">{expense.description}</span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="text-xs font-bold text-slate-500 font-mono">
@@ -268,12 +268,12 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                             </span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                                                 {expense.paidDate ? formatDate(expense.paidDate) : '-'}
                                             </p>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-sm font-semibold text-slate-900">{formatCurrency(expense.amount)}</span>
+                                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(expense.amount)}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <div className="relative inline-block expense-dropdown-wrapper">
@@ -290,7 +290,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                                     <ChevronDown size={14} className={`transition-transform duration-300 ${openExpenseStatusDropdownId === expense.id ? 'rotate-180' : ''}`} />
                                                 </button>
                                                 {openExpenseStatusDropdownId === expense.id && (
-                                                    <div className="absolute left-0 mt-3 w-48 bg-white border border-slate-100 rounded-[20px] shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
+                                                    <div className="absolute left-0 mt-3 w-48 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-[20px] shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
                                                         {['Pendente', 'Pago', 'Atrasado'].map((status) => (
                                                             <button
                                                                 key={status}
@@ -321,7 +321,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                                 <tr>
                                     <td colSpan={6} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-3">
-                                            <div className="bg-slate-50 p-4 rounded-full text-slate-300">
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-full text-slate-300 dark:text-slate-600">
                                                 <Receipt size={40} />
                                             </div>
                                             <p className="text-slate-400 text-sm font-bold italic uppercase tracking-widest">Nenhuma conta cadastrada</p>
@@ -337,8 +337,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             {/* Charts Section (Added) */}
             {cashFlow.chartData && cashFlow.chartData.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                             <TrendingUp size={18} className="text-sky-500" />
                             Faturamento {expenseMonthFilter === -1 ? 'Mensal' : 'Diário'}
                         </h3>
@@ -364,8 +364,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                             <ShoppingBag size={18} className="text-amber-500" />
                             Volume de Pedidos
                         </h3>
@@ -390,29 +390,29 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
             {/* State Distribution Section (Added) */}
             {cashFlow.stateDistribution && cashFlow.stateDistribution.length > 0 && (
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
-                    <h3 className="text-base font-bold text-slate-800 mb-6">Pedidos por Estado</h3>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
+                    <h3 className="text-base font-bold text-slate-800 dark:text-white mb-6">Pedidos por Estado</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {cashFlow.stateDistribution.map((state: any) => {
                             const stateName = BRAZILIAN_STATES.find(s => s.sigla === state.state)?.nome || state.state;
                             return (
-                                <div key={state.state} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <div key={state.state} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-750/50 border border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center gap-3">
-                                        <div className="bg-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sky-600 shadow-sm border border-slate-100">
+                                        <div className="bg-white dark:bg-slate-800 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sky-600 shadow-sm border border-slate-100 dark:border-slate-700">
                                             <MapPin size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-slate-800">{stateName}</p>
-                                            <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{stateName}</p>
+                                            <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
                                                 <span>{state.orders} pedido(s)</span>
                                                 <span>•</span>
-                                                <span className="text-emerald-600">{formatCurrency(state.revenue)}</span>
+                                                <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(state.revenue)}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="text-right pl-2">
-                                        <p className="text-xs font-bold text-slate-800">{state.percentage.toFixed(1)}%</p>
-                                        <div className="w-16 h-1 w-full bg-slate-200 rounded-full mt-1 overflow-hidden">
+                                        <p className="text-xs font-bold text-slate-800 dark:text-white">{state.percentage.toFixed(1)}%</p>
+                                        <div className="w-16 h-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
                                             <div className="bg-sky-500 h-full" style={{ width: `${state.percentage}%` }}></div>
                                         </div>
                                     </div>

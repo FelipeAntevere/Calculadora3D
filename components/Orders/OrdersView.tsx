@@ -99,21 +99,21 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
-                        <h2 className="text-2xl font-bold text-[#0f172a] tracking-tight">Pedidos</h2>
+                        <h2 className="text-2xl font-bold text-[#0f172a] dark:text-white tracking-tight">Pedidos</h2>
                         <p className="text-slate-500 text-sm font-medium">Gerencie e acompanhe o status de todas as suas vendas.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="bg-white p-1 rounded-xl border border-slate-200 flex items-center shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center shadow-sm">
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                 title="Visualização em Lista"
                             >
                                 <List size={20} />
                             </button>
                             <button
                                 onClick={() => setViewMode('kanban')}
-                                className={`p-2 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                 title="Visualização Kanban"
                             >
                                 <LayoutGrid size={20} />
@@ -121,7 +121,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                         </div>
                         <button
                             onClick={onNewOrder}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100"
+                            className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100 dark:shadow-sky-900/20"
                         >
                             <Plus size={20} />
                             Novo Pedido
@@ -137,11 +137,11 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                         placeholder="Buscar por cliente, peça, material ou estado..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-[20px] pl-12 pr-6 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-sky-500/5 focus:border-sky-500 transition-all shadow-sm"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[20px] pl-12 pr-6 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-sky-500/5 dark:focus:ring-sky-500/10 focus:border-sky-500 transition-all shadow-sm dark:text-slate-200 dark:placeholder-slate-500"
                     />
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col md:flex-row items-center gap-4">
                     <div className="flex items-center gap-2 text-slate-400 mr-2">
                         <Filter className="w-4 h-4" />
                         <span className="text-xs font-bold uppercase tracking-widest">Filtros</span>
@@ -153,7 +153,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                             <select
                                 value={selectedMonth}
                                 onChange={(e) => { setSelectedMonth(Number(e.target.value)); setSelectedDay(''); }}
-                                className="bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
+                                className="bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
                             >
                                 <option value={-1}>Todos</option>
                                 {MONTH_NAMES.map((name, i) => <option key={name} value={i}>{name}</option>)}
@@ -165,7 +165,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                             <select
                                 value={selectedYear}
                                 onChange={(e) => { setSelectedYear(Number(e.target.value)); setSelectedDay(''); }}
-                                className="bg-[#f8fafc] border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
+                                className="bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
                             >
                                 {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
                             </select>
@@ -179,7 +179,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                     type="date"
                                     value={selectedDay}
                                     onChange={(e) => setSelectedDay(e.target.value)}
-                                    className="bg-[#f8fafc] border border-slate-100 rounded-xl pl-9 pr-4 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all"
+                                    className="bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm transition-all dark:[color-scheme:dark]"
                                 />
                             </div>
                         </div>
@@ -194,7 +194,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                         )}
                     </div>
                     <div className="md:ml-auto">
-                        <div className="bg-sky-50 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2">
+                        <div className="bg-sky-50 dark:bg-sky-900/20 px-4 py-2 rounded-xl border border-sky-100 dark:border-sky-900/50 flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
                             <span className="text-xs font-bold text-sky-600">{filteredOrdersList.length} pedidos encontrados</span>
                         </div>
@@ -210,8 +210,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
                                 className={`flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 transform shadow-sm ${isActive
-                                    ? 'bg-[#0f172a] text-white shadow-lg shadow-slate-200 scale-105'
-                                    : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50 hover:border-slate-200'
+                                    ? 'bg-[#0f172a] dark:bg-sky-600 text-white shadow-lg shadow-slate-200 dark:shadow-sky-900/20 scale-105'
+                                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-200'
                                     }`}
                             >
                                 {status}
@@ -226,11 +226,11 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
             </div>
 
             {viewMode === 'list' ? (
-                <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                <div className="bg-white dark:bg-slate-800 rounded-[32px] border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 overflow-hidden">
                     <div className="overflow-x-auto min-h-[400px]">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-50 bg-slate-50/10">
+                                <tr className="border-b border-slate-50 dark:border-slate-700 bg-slate-50/10 dark:bg-slate-900/50">
                                     <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Data</th>
                                     <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Cliente</th>
                                     <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Peça</th>
@@ -243,33 +243,33 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                     <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-750">
                                 {filteredOrdersList.length > 0 ? (
                                     filteredOrdersList.map((order) => (
-                                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-750/50 transition-colors group">
                                             <td className="px-6 py-5 text-center">
-                                                <p className="text-sm font-semibold text-slate-900">{formatDate(order.date)}</p>
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatDate(order.date)}</p>
                                             </td>
                                             <td className="px-6 py-5 text-center">
-                                                <p className="text-sm font-semibold text-slate-700">{order.customer}</p>
+                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{order.customer}</p>
                                             </td>
                                             <td className="px-6 py-5 text-center">
-                                                <p className="text-sm font-medium text-slate-600 truncate max-w-[150px] mx-auto">{order.pieceName}</p>
+                                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate max-w-[150px] mx-auto">{order.pieceName}</p>
                                             </td>
                                             <td className="px-6 py-5 text-center">
-                                                <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-md">{order.state}</span>
+                                                <span className="bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-bold px-2 py-1 rounded-md">{order.state}</span>
                                             </td>
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-xs font-semibold text-slate-800">{order.material}</span>
+                                                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{order.material}</span>
                                                     <span className="text-[10px] text-slate-400 font-medium">{order.color}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5 text-center font-bold text-slate-900">{order.quantity}</td>
-                                            <td className="px-6 py-5 text-center font-bold text-slate-900">{order.weight}g</td>
+                                            <td className="px-6 py-5 text-center font-bold text-slate-900 dark:text-white">{order.quantity}</td>
+                                            <td className="px-6 py-5 text-center font-bold text-slate-900 dark:text-white">{order.weight}g</td>
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-sm font-bold text-sky-600">{formatCurrency(order.total)}</span>
+                                                    <span className="text-sm font-bold text-sky-600 dark:text-sky-400">{formatCurrency(order.total)}</span>
                                                     <span className="text-[10px] text-slate-400 font-medium italic">{order.quantity}x {formatCurrency(order.unitValue)}</span>
                                                 </div>
                                             </td>
@@ -291,7 +291,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                                                         updateOrderStatusHandler(order.id, status as OrderStatus);
                                                                         setOpenStatusDropdownId(null);
                                                                     }}
-                                                                    className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${order.status === status ? 'bg-sky-50 text-sky-600' : 'text-slate-600 hover:bg-slate-50'
+                                                                    className={`flex items-center justify-between w-full px-5 py-2.5 text-xs font-bold transition-all ${order.status === status ? 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                                         }`}
                                                                 >
                                                                     {status}
@@ -315,7 +315,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                     <tr>
                                         <td colSpan={9} className="py-24 text-center">
                                             <div className="flex flex-col items-center gap-3">
-                                                <div className="bg-slate-50 p-4 rounded-full text-slate-300">
+                                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-full text-slate-300 dark:text-slate-600">
                                                     <ShoppingBag size={40} />
                                                 </div>
                                                 <p className="text-slate-400 text-sm font-bold italic uppercase tracking-widest">Nenhum pedido encontrado</p>

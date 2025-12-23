@@ -60,7 +60,7 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white w-full max-w-md rounded-[20px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative bg-white dark:bg-slate-800 w-full max-w-md rounded-[20px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className={`${isAdd ? 'bg-[#0ea5e9]' : 'bg-rose-500'} p-6 text-white flex justify-between items-center transition-colors duration-300`}>
                     <div className="flex items-center gap-3">
                         <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
@@ -78,14 +78,14 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                             Descrição
                         </label>
                         <input
                             type="text"
                             value={description}
                             onChange={e => setDescription(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all placeholder:text-slate-400"
                             placeholder={isAdd ? "Ex: Aporte Pessoal" : "Ex: Retirada de Lucro"}
                             required
                         />
@@ -93,7 +93,7 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                 Valor (R$)
                             </label>
                             <input
@@ -101,20 +101,20 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
                                 step="0.01"
                                 value={amount}
                                 onChange={e => setAmount(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all placeholder:text-slate-400"
                                 placeholder="0,00"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                 Data
                             </label>
                             <input
                                 type="date"
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all dark:[color-scheme:dark]"
                                 required
                             />
                         </div>
