@@ -41,6 +41,7 @@ interface OrdersViewProps {
     duplicateOrderHandler: (order: Order) => void;
     getStatusStyle: (status: OrderStatus) => string;
     onNewOrder: () => void;
+    isAdmin?: boolean;
 }
 
 /**
@@ -66,7 +67,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     updateOrderStatusHandler,
     duplicateOrderHandler,
     getStatusStyle,
-    onNewOrder
+    onNewOrder,
+    isAdmin = false
 }) => {
     const [openStatusDropdownId, setOpenStatusDropdownId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
