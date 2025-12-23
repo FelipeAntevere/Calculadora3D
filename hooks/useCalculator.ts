@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PricingCalculatorInputs } from '../types';
 
 /**
@@ -7,9 +7,21 @@ import { PricingCalculatorInputs } from '../types';
  */
 export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
     const [calcInputs, setCalcInputs] = useState<PricingCalculatorInputs>(() => {
+        const currentSession = localStorage.getItem('calc_current_session');
+        if (currentSession) {
+            try {
+                return JSON.parse(currentSession);
+            } catch (e) {
+                console.error('Failed to parse current session', e);
+            }
+        }
         const saved = localStorage.getItem('calc_defaults_v2');
         return saved ? JSON.parse(saved) : initialInputs;
     });
+
+    useEffect(() => {
+        localStorage.setItem('calc_current_session', JSON.stringify(calcInputs));
+    }, [calcInputs]);
 
     const calcResults = useMemo(() => {
         const materialCost = (calcInputs.filamentCostPerKg / 1000) * calcInputs.partWeight * (1 + calcInputs.filamentLossPercentage / 100);
@@ -54,6 +66,7 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
     const clearSavedDefaults = (initialDefaults: PricingCalculatorInputs) => {
         setCalcInputs(initialDefaults);
         localStorage.removeItem('calc_defaults_v2');
+        localStorage.removeItem('calc_current_session');
         window.dispatchEvent(new CustomEvent('calc_defaults_updated', { detail: initialDefaults }));
     };
 

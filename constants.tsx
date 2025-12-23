@@ -22,7 +22,8 @@ export const INITIAL_CALC_INPUTS: PricingCalculatorInputs = {
   maintenancePerHour: 0.33,
   fixedMonthlyCosts: 200,
   productiveHoursMonth: 720,
-  profitMargin: 50
+  profitMargin: 50,
+  materialType: 'PLA'
 };
 
 export const EMPTY_ORDER: Partial<Order> = {

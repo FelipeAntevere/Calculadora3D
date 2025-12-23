@@ -5,6 +5,7 @@ import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
+import './index.css';
 
 import { ToastProvider } from './contexts/ToastContext';
 

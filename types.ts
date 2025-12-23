@@ -131,6 +131,7 @@ export interface PricingCalculatorInputs {
   fixedMonthlyCosts: number;
   productiveHoursMonth: number;
   profitMargin: number;
+  materialType?: string;
 }
 
 export interface CapitalInjection {

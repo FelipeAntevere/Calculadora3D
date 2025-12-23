@@ -49,6 +49,7 @@ interface DataContextType {
     clearSavedDefaults: () => Promise<void>;
 
     isLoading: boolean;
+    isInitialLoad: boolean; // NEW: track the very first data fetch
     refreshAll: () => Promise<void>;
 
     // Filter States
@@ -86,7 +87,8 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // Hooks initialization
     const {
@@ -138,21 +140,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } = useCalculator(INITIAL_CALC_INPUTS);
 
     const refreshAll = async () => {
-        if (!user) return;
+        if (!user || isLoading) return;
         setIsLoading(true);
+
+        // Safety timeout to prevent stuck loading state
+        const timeout = setTimeout(() => {
+            console.warn('Refresh data timed out, clearing loading state.');
+            setIsLoading(false);
+        }, 15000); // 15s safety net
+
         try {
-            await Promise.all([
+            const promises: Promise<any>[] = [
                 loadOrders(),
                 loadFilaments(),
                 loadParts(),
                 loadExpenses(),
-                loadInjections(),
-                loadDefaults()
-            ]);
+                loadInjections()
+            ];
+
+            // Only load calculator defaults on first load to prevent overwriting current session state
+            if (isInitialLoad) {
+                loadDefaults();
+            }
+
+            await Promise.all(promises);
         } catch (err) {
             console.error('Failed to load data:', err);
         } finally {
+            clearTimeout(timeout);
             setIsLoading(false);
+            setIsInitialLoad(false); // Once the first batch is done, it's no longer initial
         }
     };
 
@@ -187,14 +204,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // --- Derived Data for Orders ---
     const filteredOrdersList = useMemo(() => {
         return orders.filter(o => {
-            const d = new Date(o.date);
+            if (!o.date) return false;
+            const datePart = o.date.split('T')[0];
+            const dateParts = datePart.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]) - 1;
+
             let matchesTime = false;
             if (selectedDay) {
-                matchesTime = d.toISOString().split('T')[0] === selectedDay;
+                matchesTime = datePart === selectedDay;
             } else if (selectedMonth === -1) {
-                matchesTime = d.getFullYear() === selectedYear;
+                matchesTime = year === selectedYear;
             } else {
-                matchesTime = d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+                matchesTime = year === selectedYear && month === selectedMonth;
             }
             const matchesStatus = statusFilter === 'Todos' || o.status === statusFilter;
             const matchesSearch = searchQuery === '' ||
@@ -214,10 +236,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const statusCounts = useMemo(() => {
         const relevantOrders = orders.filter(o => {
-            const d = new Date(o.date);
-            if (selectedDay) return d.toISOString().split('T')[0] === selectedDay;
-            if (selectedMonth === -1) return d.getFullYear() === selectedYear;
-            return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+            if (!o.date) return false;
+            const datePart = o.date.split('T')[0];
+            const dateParts = datePart.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]) - 1;
+
+            if (selectedDay) return datePart === selectedDay;
+            if (selectedMonth === -1) return year === selectedYear;
+            return year === selectedYear && month === selectedMonth;
         });
 
         const counts: Record<string, number> = { 'Todos': relevantOrders.length };
@@ -230,10 +257,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // --- Derived Data for Expenses ---
     const filteredExpenses = useMemo(() => {
         return expenses.filter(expense => {
-            const dueDate = new Date(expense.dueDate);
-            if (expenseMonthFilter === -1) return dueDate.getFullYear() === expenseYearFilter;
-            return dueDate.getFullYear() === expenseYearFilter && dueDate.getMonth() === expenseMonthFilter;
-        }).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+            const dateStr = expense.paidDate || expense.dueDate;
+            if (!dateStr) return false;
+
+            const [yearStr, monthStr] = dateStr.split('T')[0].split('-');
+            const year = parseInt(yearStr);
+            const month = parseInt(monthStr) - 1;
+
+            if (expenseMonthFilter === -1) return year === expenseYearFilter;
+            return year === expenseYearFilter && month === expenseMonthFilter;
+        }).sort((a, b) => {
+            const dateA = a.paidDate || a.dueDate;
+            const dateB = b.paidDate || b.dueDate;
+            return new Date(dateA).getTime() - new Date(dateB).getTime();
+        });
     }, [expenses, expenseMonthFilter, expenseYearFilter]);
 
     const expenseMetrics = useExpenseMetrics(filteredExpenses);
@@ -242,10 +279,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cashFlow = useMemo(() => {
         const matchesFilter = (dateStr?: string) => {
             if (!dateStr) return false;
-            const [yearStr, monthStr] = dateStr.split('T')[0].split('-');
-            const year = parseInt(yearStr);
-            const month = parseInt(monthStr) - 1;
-            return expenseMonthFilter === -1 ? year === expenseYearFilter : (year === expenseYearFilter && month === expenseMonthFilter);
+            try {
+                const datePart = dateStr.split('T')[0];
+                const parts = datePart.split('-');
+                if (parts.length < 2) return false;
+
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+
+                if (expenseMonthFilter === -1) return year === expenseYearFilter;
+                return year === expenseYearFilter && month === expenseMonthFilter;
+            } catch (e) {
+                return false;
+            }
         };
 
         const isAccumulated = (dateStr?: string) => {
@@ -260,10 +306,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Global
         const globalRevenue = orders.filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)).reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
-        const globalPaidExpenses = expenses.filter(e => e.status === 'Pago').reduce((acc, curr) => acc + curr.amount, 0);
-        const globalFilamentCost = filaments.reduce((acc, f) => acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0)), 0);
-        const globalPartsCost = parts.reduce((acc, p) => acc + (p.unitCost * p.quantity), 0);
-        const globalInjections = injections.reduce((acc, curr) => acc + curr.amount, 0);
+        const globalPaidExpenses = expenses.filter(e => e.status === 'Pago').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+        const globalFilamentCost = filaments.reduce((acc, f) => acc + ((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0), 0);
+        const globalPartsCost = parts.reduce((acc, p) => acc + ((p.unitCost || 0) * (p.quantity || 0)), 0);
+        const globalInjections = injections.reduce((acc, curr) => acc + (curr.amount || 0), 0);
         const globalInventoryCost = globalFilamentCost + globalPartsCost;
         const globalBalance = globalRevenue + globalInjections - globalPaidExpenses - globalInventoryCost;
 
@@ -298,24 +344,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             stateMap[state].orders += 1;
             stateMap[state].revenue += revenue;
 
-            const date = new Date(o.date);
-            const index = isMonthlyView ? date.getDate() - 1 : date.getMonth();
+            // Robust index extraction for chartData
+            const datePart = o.date.split('T')[0];
+            const dateParts = datePart.split('-');
+            const day = parseInt(dateParts[2]);
+            const month = parseInt(dateParts[1]) - 1;
+
+            const index = isMonthlyView ? day - 1 : month;
             if (chartData[index]) {
                 chartData[index].revenue += revenue;
                 chartData[index].orders += 1;
             }
         });
 
-        const periodPaidExpenses = expenses.filter(e => e.status === 'Pago' && matchesFilter(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + curr.amount, 0);
-        const periodInventoryCost = filaments.reduce((acc, f) => matchesFilter(f.purchaseDate) ? acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0)) : acc, 0) +
-            parts.reduce((acc, p) => matchesFilter(p.purchaseDate) ? acc + (p.unitCost * p.quantity) : acc, 0);
+        const periodPaidExpenses = expenses.filter(e => e.status === 'Pago' && matchesFilter(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+        const periodFilamentCost = filaments.reduce((acc, f) => matchesFilter(f.purchaseDate) ? acc + ((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0) : acc, 0);
+        const periodPartsCost = parts.reduce((acc, p) => matchesFilter(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) : acc, 0);
+        const periodInventoryCost = periodFilamentCost + periodPartsCost;
 
         // Accumulated
         const accumulatedRevenue = orders.filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status) && isAccumulated(o.date)).reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
-        const accumulatedInjections = injections.reduce((acc, curr) => isAccumulated(curr.date) ? acc + curr.amount : acc, 0);
-        const accumulatedPaidExpenses = expenses.filter(e => e.status === 'Pago' && isAccumulated(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + curr.amount, 0);
-        const accumulatedInventoryCost = filaments.reduce((acc, f) => isAccumulated(f.purchaseDate) ? acc + ((f.costPerKg * f.initialWeight) + (f.freight || 0)) : acc, 0) +
-            parts.reduce((acc, p) => isAccumulated(p.purchaseDate) ? acc + (p.unitCost * p.quantity) : acc, 0);
+        const accumulatedInjections = injections.reduce((acc, curr) => isAccumulated(curr.date) ? acc + (curr.amount || 0) : acc, 0);
+        const accumulatedPaidExpenses = expenses.filter(e => e.status === 'Pago' && isAccumulated(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + (curr.amount || 0), 0);
+        const accumulatedInventoryCost = filaments.reduce((acc, f) => isAccumulated(f.purchaseDate) ? acc + (((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0)) : acc, 0) +
+            parts.reduce((acc, p) => isAccumulated(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) : acc, 0);
         const hourlyRate = calcResults?.hourlyMaintenanceRate || 0;
         const accumulatedMaintenanceReserve = orders.filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status) && isAccumulated(o.date))
             .reduce((acc, curr) => acc + (curr.maintenanceCost !== undefined ? curr.maintenanceCost : (curr.time || 0) * (curr.quantity || 1) * hourlyRate), 0);
@@ -324,6 +377,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             revenue: periodRevenue,
             paidExpenses: periodPaidExpenses,
             inventoryCost: periodInventoryCost,
+            filamentCost: periodFilamentCost, // ADDED
+            partsCost: periodPartsCost,       // ADDED
             totalOrders: periodTotalOrders,
             averageTicket: periodTotalOrders > 0 ? periodRevenue / periodTotalOrders : 0,
             totalPrintingHours: periodTotalPrintingHours,
@@ -372,6 +427,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetInputs,
         clearSavedDefaults,
         isLoading,
+        isInitialLoad,
         refreshAll,
 
         // Filters

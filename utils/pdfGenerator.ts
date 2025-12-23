@@ -1,6 +1,4 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { formatCurrency } from './formatters';
+import { formatCurrency, formatDuration } from './formatters';
 
 interface QuoteData {
     customerName?: string;
@@ -21,7 +19,11 @@ interface QuoteData {
     };
 }
 
-export const generateProfessionalQuote = (data: QuoteData) => {
+export const generateProfessionalQuote = async (data: QuoteData) => {
+    // Dynamic imports for better initial load performance
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -99,7 +101,7 @@ export const generateProfessionalQuote = (data: QuoteData) => {
         startY: finalY + 5,
         body: [
             ['Peso da Peça', `${data.weight}g`],
-            ['Tempo de Impressão', `${data.time}h`],
+            ['Tempo de Impressão', formatDuration(data.time)],
             ['Custo de Material', formatCurrency(data.details.materialCost)],
             ['Energia & Insumos', formatCurrency(data.details.energyCost)],
             ['Mão de Obra', formatCurrency(data.details.laborCost)],

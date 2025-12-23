@@ -154,7 +154,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                             <input
                                 type="number"
                                 value={order.quantity || ''}
-                                onChange={(e) => setOrder({ ...order, quantity: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => {
+                                    const val = e.target.value === '' ? 1 : parseInt(e.target.value);
+                                    setOrder({ ...order, quantity: isNaN(val) ? 1 : val });
+                                }}
                                 className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
                                 placeholder="1"
                             />
@@ -204,15 +207,42 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-2">Tempo de Impressão Unitário (h)</label>
-                                <input
-                                    type="number"
-                                    step="0.1"
-                                    value={order.time || ''}
-                                    onChange={(e) => setOrder({ ...order, time: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10"
-                                    placeholder="0"
-                                />
+                                <label className="block text-sm font-bold text-slate-900 mb-2">Tempo de Impressão Unitário</label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={Math.floor(order.time || 0) || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                const h = isNaN(val) ? 0 : val;
+                                                const m = Math.round(((order.time || 0) - Math.floor(order.time || 0)) * 60);
+                                                setOrder({ ...order, time: h + (m / 60) });
+                                            }}
+                                            className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-3 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 hide-spin-buttons"
+                                            placeholder="0"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">h</span>
+                                    </div>
+                                    <div className="flex-1 relative">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="59"
+                                            value={Math.round(((order.time || 0) - Math.floor(order.time || 0)) * 60) || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                const h = Math.floor(order.time || 0);
+                                                setOrder({ ...order, time: h + (m / 60) });
+                                            }}
+                                            className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-3 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 hide-spin-buttons"
+                                            placeholder="0"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">min</span>
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-slate-900 mb-2">Custo Unitário (R$)</label>

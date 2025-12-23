@@ -144,12 +144,78 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                             {expandedSections.piece ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                         </button>
                         {expandedSections.piece && (
-                            <div className="px-6 pb-8 grid grid-cols-2 gap-6 animate-in slide-in-from-top-2 duration-200">
-                                <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Tempo de impressão (horas)</label>
-                                    <input type="number" value={localInputs.printingTime || ''} onChange={(e) => setLocalInputs({ ...localInputs, printingTime: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (localInputs.printingTime === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0" />
+                            <div className="px-6 pb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Tipo de Material</label>
+                                    <select
+                                        value={localInputs.materialType || 'PLA'}
+                                        onChange={(e) => setLocalInputs({ ...localInputs, materialType: e.target.value })}
+                                        className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 text-slate-700 dark:text-slate-200 cursor-pointer"
+                                    >
+                                        <option value="PLA">PLA</option>
+                                        <option value="PLA Silk">PLA Silk</option>
+                                        <option value="ABS">ABS</option>
+                                        <option value="PETG">PETG</option>
+                                        <option value="TPU">TPU</option>
+                                        <option value="ASA">ASA</option>
+                                        <option value="Nylon">Nylon</option>
+                                        <option value="Resina">Resina</option>
+                                    </select>
                                 </div>
-                                <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Peso da peça (gramas)</label>
-                                    <input type="number" value={localInputs.partWeight || ''} onChange={(e) => setLocalInputs({ ...localInputs, partWeight: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (localInputs.partWeight === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0" />
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Tempo de impressão</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={Math.floor(localInputs.printingTime || 0) || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                    const h = isNaN(val) ? 0 : val;
+                                                    const currentM = Math.round(((localInputs.printingTime || 0) - Math.floor(localInputs.printingTime || 0)) * 60);
+                                                    setLocalInputs({ ...localInputs, printingTime: h + (currentM / 60) });
+                                                }}
+                                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
+                                                placeholder="0"
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">h</span>
+                                        </div>
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                value={Math.round(((localInputs.printingTime || 0) - Math.floor(localInputs.printingTime || 0)) * 60) || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                    const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                    const h = Math.floor(localInputs.printingTime || 0);
+                                                    setLocalInputs({ ...localInputs, printingTime: h + (m / 60) });
+                                                }}
+                                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
+                                                placeholder="0"
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Peso da peça (gramas)</label>
+                                    <input
+                                        type="number"
+                                        value={localInputs.partWeight || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '') {
+                                                setLocalInputs({ ...localInputs, partWeight: 0 });
+                                            } else {
+                                                setLocalInputs({ ...localInputs, partWeight: parseFloat(val) });
+                                            }
+                                        }}
+                                        className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (localInputs.partWeight === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')}
+                                        placeholder="0"
+                                    />
                                 </div>
                             </div>
                         )}
@@ -196,9 +262,40 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas de trabalho manual</label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                            <input type="number" step="0.1" value={localInputs.laborTimeSpent || ''} onChange={(e) => setLocalInputs({ ...localInputs, laborTimeSpent: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.laborTimeSpent === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0" />
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={Math.floor(localInputs.laborTimeSpent || 0) || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                        const h = isNaN(val) ? 0 : val;
+                                                        const currentM = Math.round(((localInputs.laborTimeSpent || 0) - Math.floor(localInputs.laborTimeSpent || 0)) * 60);
+                                                        setLocalInputs({ ...localInputs, laborTimeSpent: h + (currentM / 60) });
+                                                    }}
+                                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
+                                                    placeholder="0"
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">h</span>
+                                            </div>
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="59"
+                                                    value={Math.round(((localInputs.laborTimeSpent || 0) - Math.floor(localInputs.laborTimeSpent || 0)) * 60) || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                        const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                        const h = Math.floor(localInputs.laborTimeSpent || 0);
+                                                        setLocalInputs({ ...localInputs, laborTimeSpent: h + (m / 60) });
+                                                    }}
+                                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
+                                                    placeholder="0"
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">min</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custos fixos mensais</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={localInputs.fixedMonthlyCosts || ''} onChange={(e) => setLocalInputs({ ...localInputs, fixedMonthlyCosts: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.fixedMonthlyCosts === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" /></div></div>
@@ -271,6 +368,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                 onClick={() => {
                                     onAddToOrders({
                                         ...EMPTY_ORDER,
+                                        material: localInputs.materialType || 'PLA',
                                         unitValue: Number(calcResults.total.toFixed(2)),
                                         unitCost: Number(calcResults.subtotal.toFixed(2)),
                                         weight: localInputs.partWeight,

@@ -64,3 +64,18 @@ export const toLocalInputDate = (isoString: string): string => {
 
     return localDate.toISOString().slice(0, 16);
 };
+
+/**
+ * Format a decimal hour value to "Xh Ymin"
+ */
+export const formatDuration = (hoursDecimal: number): string => {
+    if (!hoursDecimal || hoursDecimal <= 0) return '0h';
+
+    const totalMinutes = Math.round(hoursDecimal * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) return `${minutes}min`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}min`;
+};

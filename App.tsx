@@ -49,7 +49,7 @@ import { CapitalReportModal } from './components/Modals/CapitalReportModal';
 import { TableSkeleton, CardSkeleton, Skeleton } from './components/Common/Skeleton';
 
 // Utils
-import { formatCurrency } from './utils/formatters';
+import { formatCurrency, formatDuration } from './utils/formatters';
 import { generateProfessionalQuote } from './utils/pdfGenerator';
 
 /**
@@ -58,8 +58,6 @@ import { generateProfessionalQuote } from './utils/pdfGenerator';
  */
 const AppContent: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { user, userRole, isLoading: authLoading, signOut } = useAuth();
-  const { showToast } = useToast();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'calculator' | 'orders' | 'inventory' | 'parts' | 'expenses'>('calculator');
@@ -89,6 +87,12 @@ const AppContent: React.FC = () => {
 
   // UI Local States
   const [filamentColorFilter, setFilamentColorFilter] = useState('Todos');
+  const {
+    user,
+    userRole,
+    isLoading: authLoading,
+    signOut
+  } = useAuth();
 
   const {
     orders,
@@ -116,6 +120,7 @@ const AppContent: React.FC = () => {
     resetInputs,
     clearSavedDefaults,
     isLoading: dataLoading,
+    isInitialLoad,
     selectedYear,
     setSelectedYear,
     selectedMonth,
@@ -141,6 +146,10 @@ const AppContent: React.FC = () => {
     updateTemplate,
     removeTemplate
   } = useData();
+
+  const { showToast } = useToast();
+
+  // Tab state
 
   const handleSignOut = async () => {
     await signOut();
@@ -177,6 +186,7 @@ const AppContent: React.FC = () => {
   };
 
   const onSaveOrder = async () => {
+    console.log('[onSaveOrder] Clicked. Current order state:', newOrder);
     try {
       const missing = [];
       if (!newOrder.customer) missing.push('Cliente');
@@ -186,30 +196,38 @@ const AppContent: React.FC = () => {
       if (!newOrder.state) missing.push('Estado');
 
       if (missing.length > 0) {
-        showToast(`Preencha os campos obrigatórios: ${missing.join(', ')}`, 'error');
+        console.warn('[onSaveOrder] Validation failed. Missing:', missing);
+        showToast(`⚠️ Campos obrigatórios: ${missing.join(', ')}`, 'error');
+        // If they are missing fields likely at the top, and they are at the bottom, 
+        // the modal won't scroll automatically without extra work, but we added a reset above.
         return;
       }
+
+      console.log('[onSaveOrder] Validation passed. Calculating totals...');
       const total = ((newOrder.quantity || 1) * (newOrder.unitValue || 0)) + (newOrder.freight || 0);
 
-      // Calculate maintenance cost reserve
-      // Maintenance = Time * Rate * Quantity (assuming time is per unit)
-      // Rate comes from current calculator state (best approximation for new orders)
-      const maintenanceCost = (newOrder.time || 0) * (newOrder.quantity || 1) * calcResults.hourlyMaintenanceRate;
+      // Guard for calcResults
+      const maintenanceRate = calcResults?.hourlyMaintenanceRate || 0.2; // fallback to 0.2 if missing
+      const maintenanceCost = (newOrder.time || 0) * (newOrder.quantity || 1) * maintenanceRate;
 
-      console.log('Saving order with payload:', { ...newOrder, total, maintenanceCost });
-      await saveOrder({ ...newOrder, total, maintenanceCost });
+      const payload = { ...newOrder, total, maintenanceCost };
+      console.log('[onSaveOrder] Saving payload:', payload);
+
+      await saveOrder(payload);
+
+      console.log('[onSaveOrder] Save successful!');
       showToast('Pedido salvo com sucesso!', 'success');
       setIsOrderModalOpen(false);
     } catch (error) {
-      console.error('CRITICAL SAVE ERROR:', error);
-      showToast(`Erro ao salvar pedido: ${error instanceof Error ? error.message : JSON.stringify(error)}`, 'error');
+      console.error('[onSaveOrder] CRITICAL SAVE ERROR:', error);
+      showToast(`❌ Erro ao salvar: ${error instanceof Error ? error.message : JSON.stringify(error)}`, 'error');
     }
   };
 
   const onGenerateSummary = () => {
     const text = "📊 *RESUMO DE PRECIFICAÇÃO - 3D PRINT FLOW*\n" +
       "---------------------------------------\n" +
-      "⏱️ *Tempo de Impressão:* " + calcInputs.printingTime + "h\n" +
+      "⏱️ *Tempo de Impressão:* " + formatDuration(calcInputs.printingTime) + "\n" +
       "⚖️ *Peso Estimado:* " + calcInputs.partWeight + "g (+ " + calcInputs.filamentLossPercentage + "% perda)\n" +
       "---------------------------------------\n" +
       "💰 *DETALHAMENTO DE CUSTOS:*\n" +
@@ -300,7 +318,7 @@ const AppContent: React.FC = () => {
       </header >
 
       <main className="max-w-[95rem] mx-auto px-6 py-10">
-        {dataLoading ? (
+        {isInitialLoad ? (
           <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-2">
@@ -322,12 +340,10 @@ const AppContent: React.FC = () => {
 
 
             {/* Dashboard removed */}
-            <AnimatePresence mode="wait">
+            <div className="relative">
               <motion.div
-                key={activeTab}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.1, ease: 'easeOut' }}
               >
                 <React.Suspense fallback={
@@ -336,7 +352,7 @@ const AppContent: React.FC = () => {
                     <p className="text-slate-400 text-sm">Carregando...</p>
                   </div>
                 }>
-                  {activeTab === 'calculator' && (
+                  <div className={activeTab === 'calculator' ? '' : 'hidden'}>
                     <CalculatorView
                       calcInputs={calcInputs}
                       setCalcInputs={setCalcInputs}
@@ -349,8 +365,8 @@ const AppContent: React.FC = () => {
                       onAddToOrders={openNewOrder}
                       EMPTY_ORDER={EMPTY_ORDER}
                     />
-                  )}
-                  {activeTab === 'orders' && (
+                  </div>
+                  <div className={activeTab === 'orders' ? '' : 'hidden'}>
                     <OrdersView
                       orders={orders}
                       statusFilter={statusFilter}
@@ -387,49 +403,51 @@ const AppContent: React.FC = () => {
                       onNewOrder={() => openNewOrder()}
                       isAdmin={userRole === 'admin'}
                     />
-                  )}
-                  {activeTab === 'inventory' && (() => {
-                    const filteredFilaments = filamentColorFilter === 'Todos'
-                      ? filaments
-                      : filaments.filter(f => f.color === filamentColorFilter);
+                  </div>
+                  <div className={activeTab === 'inventory' ? '' : 'hidden'}>
+                    {(() => {
+                      const filteredFilaments = filamentColorFilter === 'Todos'
+                        ? filaments
+                        : filaments.filter(f => f.color === filamentColorFilter);
 
-                    const totalKg = filteredFilaments.reduce((acc, f) => acc + f.currentWeight, 0);
-                    const totalItems = filteredFilaments.length;
-                    const uniqueColors = Array.from(new Set(filaments.map(f => f.color))).sort();
+                      const totalKg = filteredFilaments.reduce((acc, f) => acc + f.currentWeight, 0);
+                      const totalItems = filteredFilaments.length;
+                      const uniqueColors = Array.from(new Set(filaments.map(f => f.color))).sort();
 
-                    return (
-                      <InventoryView
-                        filaments={filteredFilaments}
-                        colorFilter={filamentColorFilter}
-                        setColorFilter={setFilamentColorFilter}
-                        colorOptions={uniqueColors}
-                        totalItems={totalItems}
-                        totalKg={totalKg}
-                        onNewFilament={() => {
-                          setNewFilament({ brand: '', material: 'PLA', color: '', initialWeight: 1, currentWeight: 1, costPerKg: 0, freight: 0, purchaseDate: new Date().toISOString().split('T')[0] });
-                          setEditingFilamentId(null);
-                          setIsFilamentModalOpen(true);
-                        }}
-                        handleEditFilament={(f) => {
-                          setNewFilament(f);
-                          setEditingFilamentId(f.id);
-                          setIsFilamentModalOpen(true);
-                        }}
-                        handleDuplicateFilament={(f) => {
-                          const { id, created_at, user_id, ...filamentData } = f;
-                          setNewFilament({
-                            ...filamentData,
-                            brand: `${filamentData.brand} (Cópia)`
-                          } as any);
-                          setEditingFilamentId(null);
-                          setIsFilamentModalOpen(true);
-                        }}
-                        deleteFilamentHandler={removeFilament}
-                        getProgressColor={getProgressColor}
-                      />
-                    );
-                  })()}
-                  {activeTab === 'parts' && (
+                      return (
+                        <InventoryView
+                          filaments={filteredFilaments}
+                          colorFilter={filamentColorFilter}
+                          setColorFilter={setFilamentColorFilter}
+                          colorOptions={uniqueColors}
+                          totalItems={totalItems}
+                          totalKg={totalKg}
+                          onNewFilament={() => {
+                            setNewFilament({ brand: '', material: 'PLA', color: '', initialWeight: 1, currentWeight: 1, costPerKg: 0, freight: 0, purchaseDate: new Date().toISOString().split('T')[0] });
+                            setEditingFilamentId(null);
+                            setIsFilamentModalOpen(true);
+                          }}
+                          handleEditFilament={(f) => {
+                            setNewFilament(f);
+                            setEditingFilamentId(f.id);
+                            setIsFilamentModalOpen(true);
+                          }}
+                          handleDuplicateFilament={(f) => {
+                            const { id, created_at, user_id, ...filamentData } = f;
+                            setNewFilament({
+                              ...filamentData,
+                              brand: `${filamentData.brand} (Cópia)`
+                            } as any);
+                            setEditingFilamentId(null);
+                            setIsFilamentModalOpen(true);
+                          }}
+                          deleteFilamentHandler={removeFilament}
+                          getProgressColor={getProgressColor}
+                        />
+                      );
+                    })()}
+                  </div>
+                  <div className={activeTab === 'parts' ? '' : 'hidden'}>
                     <PartsView
                       replacementParts={parts}
                       onNewPart={() => {
@@ -454,8 +472,8 @@ const AppContent: React.FC = () => {
                       }}
                       deletePartHandler={removePart}
                     />
-                  )}
-                  {activeTab === 'expenses' && (
+                  </div>
+                  <div className={activeTab === 'expenses' ? '' : 'hidden'}>
                     <ExpensesView
                       expenseMetrics={expenseMetrics}
                       expenseMonthFilter={expenseMonthFilter}
@@ -487,10 +505,10 @@ const AppContent: React.FC = () => {
                       }}
                       onOpenReportModal={() => setIsReportModalOpen(true)}
                     />
-                  )}
+                  </div>
                 </React.Suspense>
               </motion.div>
-            </AnimatePresence>
+            </div>
           </div>
         )}
       </main>
@@ -613,8 +631,8 @@ const AppContent: React.FC = () => {
                     Copiar
                   </button>
                   <button
-                    onClick={() => {
-                      generateProfessionalQuote({
+                    onClick={async () => {
+                      await generateProfessionalQuote({
                         pieceName: 'Peça de Teste', // Fallback
                         material: calcInputs.materialType || 'PLA',
                         weight: calcInputs.partWeight,
