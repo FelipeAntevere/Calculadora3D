@@ -31,11 +31,12 @@ import { useData } from './contexts/DataContext';
 import { useToast } from './contexts/ToastContext';
 // Components
 // Lazy Load Main Views
-const CalculatorView = React.lazy(() => import('./components/Calculator/CalculatorView').then(module => ({ default: module.CalculatorView })));
-const OrdersView = React.lazy(() => import('./components/Orders/OrdersView').then(module => ({ default: module.OrdersView })));
-const InventoryView = React.lazy(() => import('./components/Inventory/InventoryView').then(module => ({ default: module.InventoryView })));
-const PartsView = React.lazy(() => import('./components/Parts/PartsView').then(module => ({ default: module.PartsView })));
-const ExpensesView = React.lazy(() => import('./components/Expenses/ExpensesView').then(module => ({ default: module.ExpensesView })));
+import { lazyWithRetry } from './components/Common/ErrorBoundary';
+const CalculatorView = lazyWithRetry(() => import('./components/Calculator/CalculatorView').then(module => ({ default: module.CalculatorView })));
+const OrdersView = lazyWithRetry(() => import('./components/Orders/OrdersView').then(module => ({ default: module.OrdersView })));
+const InventoryView = lazyWithRetry(() => import('./components/Inventory/InventoryView').then(module => ({ default: module.InventoryView })));
+const PartsView = lazyWithRetry(() => import('./components/Parts/PartsView').then(module => ({ default: module.PartsView })));
+const ExpensesView = lazyWithRetry(() => import('./components/Expenses/ExpensesView').then(module => ({ default: module.ExpensesView })));
 
 // Modals
 import { OrderModalV2 as OrderModal } from './components/Modals/OrderModalV2';

@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { ErrorBoundary } from './components/Common/ErrorBoundary';
 
 import { ToastProvider } from './contexts/ToastContext';
 
@@ -15,12 +16,14 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <DataProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </DataProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <DataProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </DataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
