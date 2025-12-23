@@ -71,7 +71,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     isAdmin = false
 }) => {
     const [openStatusDropdownId, setOpenStatusDropdownId] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
     const currentYear = new Date().getFullYear();
 
     // Close dropdown when clicking outside

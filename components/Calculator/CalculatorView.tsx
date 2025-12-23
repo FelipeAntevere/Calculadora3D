@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { PricingCalculatorInputs, Order } from '../../types';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CalculatorViewProps {
     calcInputs: PricingCalculatorInputs;
@@ -49,6 +50,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
 }) => {
     // Local state for immediate input feedback
     const [localInputs, setLocalInputs] = useState<PricingCalculatorInputs>(calcInputs);
+    const { showToast } = useToast();
 
     // Sync local state when props change externally (Load/Reset)
     React.useEffect(() => {
@@ -76,34 +78,17 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
         machine: true
     });
 
-    const [savedNotification, setSavedNotification] = useState<{ show: boolean; message: string; subtext: string } | null>(null);
-
     const onSaveDefaults = () => {
         handleSaveDefaults();
-
-        setSavedNotification({
-            show: true,
-            message: "Padrão Atualizado!",
-            subtext: `Salvo: Filamento (R$ ${localInputs.filamentCostPerKg}), Energia (${localInputs.printerConsumption}kWh/R$ ${localInputs.kWhCost}), Mão de Obra (R$ ${localInputs.laborHourValue}/h), Fixo (R$ ${localInputs.fixedMonthlyCosts}), Lucro (${localInputs.profitMargin}%), Manutenção (R$ ${localInputs.maintenanceBudget}/${localInputs.printerLifespan}h), Perda (${localInputs.filamentLossPercentage}%), Horas Prod. (${localInputs.productiveHoursMonth}h).`
-        });
+        showToast("Padrão atualizado com sucesso!", "success");
     };
 
     const onLoadDefaults = () => {
         const success = handleLoadDefaults();
         if (success) {
-            setSavedNotification({
-                show: true,
-                message: "Configurações Restauradas!",
-                subtext: "Todos os campos foram preenchidos com os valores do seu último salvamento."
-            });
+            showToast("Configurações restauradas com sucesso!", "success");
         } else {
-            setSavedNotification({
-                show: true,
-                message: "Nenhum Padrão Encontrado",
-                subtext: "Você ainda não salvou nenhuma configuração padrão neste navegador."
-            });
-            // Auto close error after 3s since it's less critical/positive
-            setTimeout(() => setSavedNotification(null), 3000);
+            showToast("Nenhum padrão encontrado!", "info");
         }
     };
 
@@ -304,29 +289,6 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                     </div>
                 </div>
             </div>
-            {/* Notification Toast */}
-            {savedNotification && (
-                <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-right-10 fade-in duration-300">
-                    <div className="bg-emerald-500 text-white p-4 rounded-2xl shadow-2xl shadow-emerald-200 flex items-start gap-4 max-w-md border border-emerald-400/50">
-                        <div className="bg-white/20 p-2 rounded-xl mt-0.5">
-                            <CheckCircle2 className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h4 className="font-black text-lg tracking-tight">{savedNotification.message}</h4>
-                            <p className="text-emerald-50 text-xs font-medium mt-1 leading-relaxed opacity-90">{savedNotification.subtext}</p>
-                            <div className="mt-2 text-[10px] font-bold text-emerald-100 uppercase tracking-widest bg-emerald-600/30 w-fit px-2 py-1 rounded-lg">
-                                Aplicado à Calculadora e Dashboard
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setSavedNotification(null)}
-                            className="px-4 py-2 bg-white text-emerald-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-50 transition-colors shadow-sm ml-2"
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

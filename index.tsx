@@ -5,6 +5,8 @@ import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 
+import { ToastProvider } from './contexts/ToastContext';
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Não foi possível encontrar o elemento root para montar a aplicação.");
@@ -15,7 +17,9 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <DataProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </DataProvider>
     </AuthProvider>
   </React.StrictMode>

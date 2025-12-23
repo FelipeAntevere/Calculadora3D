@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, TrendingUp, TrendingDown } from 'lucide-react';
 import { CapitalInjection } from '../../types';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CapitalInjectionModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
     const [amount, setAmount] = useState<string>('');
     const [date, setDate] = useState('');
     const [loading, setLoading] = useState(false);
+    const { showToast } = useToast();
 
     const isAdd = type === 'add';
 
@@ -45,10 +47,11 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
                 amount: finalAmount,
                 date
             });
+            showToast(`${isAdd ? 'Aporte' : 'Retirada'} realizado com sucesso!`, 'success');
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Erro ao salvar transação');
+            showToast(`Erro ao salvar transação: ${error instanceof Error ? error.message : JSON.stringify(error)}`, 'error');
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
 import { Printer, Mail, Lock, LogIn, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 
 const Auth: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +10,7 @@ const Auth: React.FC = () => {
     const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { showToast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,7 +32,7 @@ const Auth: React.FC = () => {
                     }
                 });
                 if (error) throw error;
-                alert('Confirme seu e-mail para ativar sua conta!');
+                showToast('Confirme seu e-mail para ativar sua conta!', 'info');
             }
         } catch (err: any) {
             setError(err.message || 'Ocorreu um erro ao autenticar.');

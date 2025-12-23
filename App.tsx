@@ -14,6 +14,7 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // supabase
@@ -27,6 +28,7 @@ import { MONTH_NAMES, DEFAULT_COSTS_CONFIG, EMPTY_ORDER, INITIAL_CALC_INPUTS } f
 
 import { useAuth } from './contexts/AuthContext';
 import { useData } from './contexts/DataContext';
+import { useToast } from './contexts/ToastContext';
 // Components
 // Lazy Load Main Views
 const CalculatorView = React.lazy(() => import('./components/Calculator/CalculatorView').then(module => ({ default: module.CalculatorView })));
@@ -43,9 +45,11 @@ import { ExpenseModal } from './components/Modals/ExpenseModal';
 import { RecurringExpensesModal } from './components/Modals/RecurringExpensesModal';
 import { CapitalInjectionModal } from './components/Modals/CapitalInjectionModal';
 import { CapitalReportModal } from './components/Modals/CapitalReportModal';
+import { TableSkeleton, CardSkeleton, Skeleton } from './components/Common/Skeleton';
 
 // Utils
 import { formatCurrency } from './utils/formatters';
+import { generateProfessionalQuote } from './utils/pdfGenerator';
 
 /**
  * Main Application Component (Refactored)
@@ -54,6 +58,7 @@ import { formatCurrency } from './utils/formatters';
 const AppContent: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, userRole, isLoading: authLoading, signOut } = useAuth();
+  const { showToast } = useToast();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'calculator' | 'orders' | 'inventory' | 'parts' | 'expenses'>('calculator');
@@ -180,7 +185,7 @@ const AppContent: React.FC = () => {
       if (!newOrder.state) missing.push('Estado');
 
       if (missing.length > 0) {
-        alert(`Preencha os campos obrigatórios: ${missing.join(', ')}`);
+        showToast(`Preencha os campos obrigatórios: ${missing.join(', ')}`, 'error');
         return;
       }
       const total = ((newOrder.quantity || 1) * (newOrder.unitValue || 0)) + (newOrder.freight || 0);
@@ -192,10 +197,11 @@ const AppContent: React.FC = () => {
 
       console.log('Saving order with payload:', { ...newOrder, total, maintenanceCost });
       await saveOrder({ ...newOrder, total, maintenanceCost });
+      showToast('Pedido salvo com sucesso!', 'success');
       setIsOrderModalOpen(false);
     } catch (error) {
       console.error('CRITICAL SAVE ERROR:', error);
-      alert(`Erro ao salvar pedido: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      showToast(`Erro ao salvar pedido: ${error instanceof Error ? error.message : JSON.stringify(error)}`, 'error');
     }
   };
 
@@ -294,177 +300,196 @@ const AppContent: React.FC = () => {
 
       <main className="max-w-[95rem] mx-auto px-6 py-10">
         {dataLoading ? (
-          <div className="h-[65vh] flex flex-col items-center justify-center gap-5 bg-white rounded-[40px] border border-slate-50 shadow-sm">
-            <Loader2 className="w-14 h-14 text-sky-500 animate-spin" />
-            <div className="text-center">
-              <p className="text-slate-900 font-black uppercase tracking-[0.3em] text-sm">Sincronizando Banco de Dados</p>
-              <p className="text-slate-400 text-xs font-medium mt-1">Carregando seus registros do Supabase...</p>
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <Skeleton width="200px" height="32px" />
+                <Skeleton width="350px" height="18px" />
+              </div>
+              <Skeleton width="180px" height="48px" />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+
+            <TableSkeleton rows={8} />
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-700">
 
 
             {/* Dashboard removed */}
-            <React.Suspense fallback={
-              <div className="flex flex-col items-center justify-center p-12">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-                <p className="text-slate-400 text-sm">Carregando...</p>
-              </div>
-            }>
-              {activeTab === 'calculator' && (
-                <CalculatorView
-                  calcInputs={calcInputs}
-                  setCalcInputs={setCalcInputs}
-                  calcResults={calcResults}
-                  handleSaveDefaults={saveDefaults}
-                  handleLoadDefaults={loadDefaults}
-                  handleResetInputs={() => resetInputs(INITIAL_CALC_INPUTS)}
-                  handleClearSavedDefaults={() => clearSavedDefaults(INITIAL_CALC_INPUTS)}
-                  handleGenerateSummary={onGenerateSummary}
-                  onAddToOrders={openNewOrder}
-                  EMPTY_ORDER={EMPTY_ORDER}
-                />
-              )}
-              {activeTab === 'orders' && (
-                <OrdersView
-                  orders={orders}
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  selectedYear={selectedYear}
-                  setSelectedYear={setSelectedYear}
-                  selectedMonth={selectedMonth}
-                  setSelectedMonth={setSelectedMonth}
-                  selectedDay={selectedDay}
-                  setSelectedDay={setSelectedDay}
-                  statusCounts={statusCounts}
-                  filteredOrdersList={filteredOrdersList}
-                  statusOptions={statusOptions}
-                  handleEditOrder={(order) => {
-                    setNewOrder(order);
-                    setEditingOrderId(order.id);
-                    setIsOrderModalOpen(true);
-                  }}
-                  deleteOrderHandler={removeOrder}
-                  updateOrderStatusHandler={changeOrderStatus}
-                  duplicateOrderHandler={(order) => {
-                    const { id, created_at, user_id, ...orderData } = order;
-                    setNewOrder({
-                      ...orderData,
-                      customer: `${orderData.customer} (Cópia)`,
-                      date: new Date().toISOString().split('T')[0]
-                    } as any);
-                    setEditingOrderId(null);
-                    setIsOrderModalOpen(true);
-                  }}
-                  getStatusStyle={getStatusStyle}
-                  onNewOrder={() => openNewOrder()}
-                  isAdmin={userRole === 'admin'}
-                />
-              )}
-              {activeTab === 'inventory' && (() => {
-                const filteredFilaments = filamentColorFilter === 'Todos'
-                  ? filaments
-                  : filaments.filter(f => f.color === filamentColorFilter);
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                <React.Suspense fallback={
+                  <div className="flex flex-col items-center justify-center p-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+                    <p className="text-slate-400 text-sm">Carregando...</p>
+                  </div>
+                }>
+                  {activeTab === 'calculator' && (
+                    <CalculatorView
+                      calcInputs={calcInputs}
+                      setCalcInputs={setCalcInputs}
+                      calcResults={calcResults}
+                      handleSaveDefaults={saveDefaults}
+                      handleLoadDefaults={loadDefaults}
+                      handleResetInputs={() => resetInputs(INITIAL_CALC_INPUTS)}
+                      handleClearSavedDefaults={() => clearSavedDefaults(INITIAL_CALC_INPUTS)}
+                      handleGenerateSummary={onGenerateSummary}
+                      onAddToOrders={openNewOrder}
+                      EMPTY_ORDER={EMPTY_ORDER}
+                    />
+                  )}
+                  {activeTab === 'orders' && (
+                    <OrdersView
+                      orders={orders}
+                      statusFilter={statusFilter}
+                      setStatusFilter={setStatusFilter}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      selectedYear={selectedYear}
+                      setSelectedYear={setSelectedYear}
+                      selectedMonth={selectedMonth}
+                      setSelectedMonth={setSelectedMonth}
+                      selectedDay={selectedDay}
+                      setSelectedDay={setSelectedDay}
+                      statusCounts={statusCounts}
+                      filteredOrdersList={filteredOrdersList}
+                      statusOptions={statusOptions}
+                      handleEditOrder={(order) => {
+                        setNewOrder(order);
+                        setEditingOrderId(order.id);
+                        setIsOrderModalOpen(true);
+                      }}
+                      deleteOrderHandler={removeOrder}
+                      updateOrderStatusHandler={changeOrderStatus}
+                      duplicateOrderHandler={(order) => {
+                        const { id, created_at, user_id, ...orderData } = order;
+                        setNewOrder({
+                          ...orderData,
+                          customer: `${orderData.customer} (Cópia)`,
+                          date: new Date().toISOString().split('T')[0]
+                        } as any);
+                        setEditingOrderId(null);
+                        setIsOrderModalOpen(true);
+                      }}
+                      getStatusStyle={getStatusStyle}
+                      onNewOrder={() => openNewOrder()}
+                      isAdmin={userRole === 'admin'}
+                    />
+                  )}
+                  {activeTab === 'inventory' && (() => {
+                    const filteredFilaments = filamentColorFilter === 'Todos'
+                      ? filaments
+                      : filaments.filter(f => f.color === filamentColorFilter);
 
-                const totalKg = filteredFilaments.reduce((acc, f) => acc + f.currentWeight, 0);
-                const totalItems = filteredFilaments.length;
-                const uniqueColors = Array.from(new Set(filaments.map(f => f.color))).sort();
+                    const totalKg = filteredFilaments.reduce((acc, f) => acc + f.currentWeight, 0);
+                    const totalItems = filteredFilaments.length;
+                    const uniqueColors = Array.from(new Set(filaments.map(f => f.color))).sort();
 
-                return (
-                  <InventoryView
-                    filaments={filteredFilaments}
-                    colorFilter={filamentColorFilter}
-                    setColorFilter={setFilamentColorFilter}
-                    colorOptions={uniqueColors}
-                    totalItems={totalItems}
-                    totalKg={totalKg}
-                    onNewFilament={() => {
-                      setNewFilament({ brand: '', material: 'PLA', color: '', initialWeight: 1, currentWeight: 1, costPerKg: 0, freight: 0, purchaseDate: new Date().toISOString().split('T')[0] });
-                      setEditingFilamentId(null);
-                      setIsFilamentModalOpen(true);
-                    }}
-                    handleEditFilament={(f) => {
-                      setNewFilament(f);
-                      setEditingFilamentId(f.id);
-                      setIsFilamentModalOpen(true);
-                    }}
-                    handleDuplicateFilament={(f) => {
-                      const { id, created_at, user_id, ...filamentData } = f;
-                      setNewFilament({
-                        ...filamentData,
-                        brand: `${filamentData.brand} (Cópia)`
-                      } as any);
-                      setEditingFilamentId(null);
-                      setIsFilamentModalOpen(true);
-                    }}
-                    deleteFilamentHandler={removeFilament}
-                    getProgressColor={getProgressColor}
-                  />
-                );
-              })()}
-              {activeTab === 'parts' && (
-                <PartsView
-                  replacementParts={parts}
-                  onNewPart={() => {
-                    setNewPart({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, purchaseDate: new Date().toISOString().split('T')[0] });
-                    setEditingPartId(null);
-                    setIsPartModalOpen(true);
-                  }}
-                  handleEditPart={(p) => {
-                    setNewPart(p);
-                    setEditingPartId(p.id);
-                    setIsPartModalOpen(true);
-                  }}
-                  duplicatePartHandler={(p) => {
-                    const { id, created_at, user_id, ...partData } = p;
-                    setNewPart({
-                      ...partData,
-                      name: `${partData.name} (Cópia)`,
-                      purchaseDate: new Date().toISOString().split('T')[0]
-                    } as any);
-                    setEditingPartId(null);
-                    setIsPartModalOpen(true);
-                  }}
-                  deletePartHandler={removePart}
-                />
-              )}
-              {activeTab === 'expenses' && (
-                <ExpensesView
-                  expenseMetrics={expenseMetrics}
-                  expenseMonthFilter={expenseMonthFilter}
-                  setExpenseMonthFilter={setExpenseMonthFilter}
-                  expenseYearFilter={expenseYearFilter}
-                  setExpenseYearFilter={setExpenseYearFilter}
-                  filteredExpenses={filteredExpenses}
-                  onNewExpense={() => {
-                    setNewExpense({ description: '', category: 'Material', amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'Pendente' });
-                    setEditingExpenseId(null);
-                    setIsExpenseModalOpen(true);
-                  }}
-                  handleEditExpense={(e) => {
-                    setNewExpense(e);
-                    setEditingExpenseId(e.id);
-                    setIsExpenseModalOpen(true);
-                  }}
-                  deleteExpenseHandler={removeExpense}
-                  updateExpenseStatusHandler={changeExpenseStatus}
-                  onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
-                  cashFlow={cashFlow}
-                  onOpenInjectionModal={() => {
-                    setActiveInjectionType('add');
-                    setIsInjectionModalOpen(true);
-                  }}
-                  onOpenWithdrawalModal={() => {
-                    setActiveInjectionType('remove');
-                    setIsInjectionModalOpen(true);
-                  }}
-                  onOpenReportModal={() => setIsReportModalOpen(true)}
-                />
-              )}
-            </React.Suspense>
+                    return (
+                      <InventoryView
+                        filaments={filteredFilaments}
+                        colorFilter={filamentColorFilter}
+                        setColorFilter={setFilamentColorFilter}
+                        colorOptions={uniqueColors}
+                        totalItems={totalItems}
+                        totalKg={totalKg}
+                        onNewFilament={() => {
+                          setNewFilament({ brand: '', material: 'PLA', color: '', initialWeight: 1, currentWeight: 1, costPerKg: 0, freight: 0, purchaseDate: new Date().toISOString().split('T')[0] });
+                          setEditingFilamentId(null);
+                          setIsFilamentModalOpen(true);
+                        }}
+                        handleEditFilament={(f) => {
+                          setNewFilament(f);
+                          setEditingFilamentId(f.id);
+                          setIsFilamentModalOpen(true);
+                        }}
+                        handleDuplicateFilament={(f) => {
+                          const { id, created_at, user_id, ...filamentData } = f;
+                          setNewFilament({
+                            ...filamentData,
+                            brand: `${filamentData.brand} (Cópia)`
+                          } as any);
+                          setEditingFilamentId(null);
+                          setIsFilamentModalOpen(true);
+                        }}
+                        deleteFilamentHandler={removeFilament}
+                        getProgressColor={getProgressColor}
+                      />
+                    );
+                  })()}
+                  {activeTab === 'parts' && (
+                    <PartsView
+                      replacementParts={parts}
+                      onNewPart={() => {
+                        setNewPart({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, purchaseDate: new Date().toISOString().split('T')[0] });
+                        setEditingPartId(null);
+                        setIsPartModalOpen(true);
+                      }}
+                      handleEditPart={(p) => {
+                        setNewPart(p);
+                        setEditingPartId(p.id);
+                        setIsPartModalOpen(true);
+                      }}
+                      duplicatePartHandler={(p) => {
+                        const { id, created_at, user_id, ...partData } = p;
+                        setNewPart({
+                          ...partData,
+                          name: `${partData.name} (Cópia)`,
+                          purchaseDate: new Date().toISOString().split('T')[0]
+                        } as any);
+                        setEditingPartId(null);
+                        setIsPartModalOpen(true);
+                      }}
+                      deletePartHandler={removePart}
+                    />
+                  )}
+                  {activeTab === 'expenses' && (
+                    <ExpensesView
+                      expenseMetrics={expenseMetrics}
+                      expenseMonthFilter={expenseMonthFilter}
+                      setExpenseMonthFilter={setExpenseMonthFilter}
+                      expenseYearFilter={expenseYearFilter}
+                      setExpenseYearFilter={setExpenseYearFilter}
+                      filteredExpenses={filteredExpenses}
+                      onNewExpense={() => {
+                        setNewExpense({ description: '', category: 'Material', amount: 0, dueDate: new Date().toISOString().split('T')[0], status: 'Pendente' });
+                        setEditingExpenseId(null);
+                        setIsExpenseModalOpen(true);
+                      }}
+                      handleEditExpense={(e) => {
+                        setNewExpense(e);
+                        setEditingExpenseId(e.id);
+                        setIsExpenseModalOpen(true);
+                      }}
+                      deleteExpenseHandler={removeExpense}
+                      updateExpenseStatusHandler={changeExpenseStatus}
+                      onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
+                      cashFlow={cashFlow}
+                      onOpenInjectionModal={() => {
+                        setActiveInjectionType('add');
+                        setIsInjectionModalOpen(true);
+                      }}
+                      onOpenWithdrawalModal={() => {
+                        setActiveInjectionType('remove');
+                        setIsInjectionModalOpen(true);
+                      }}
+                      onOpenReportModal={() => setIsReportModalOpen(true)}
+                    />
+                  )}
+                </React.Suspense>
+              </motion.div>
+            </AnimatePresence>
           </div>
         )}
       </main>
@@ -575,16 +600,44 @@ const AppContent: React.FC = () => {
                 </div>
               </div>
               <div className="p-10 pt-0">
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(summaryText);
-                    alert('Resumo copiado!');
-                  }}
-                  className="w-full flex items-center justify-center gap-3 py-5 bg-sky-500 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-600 shadow-2xl shadow-sky-200 transition-all active:scale-95"
-                >
-                  <Copy size={18} />
-                  Copiar Orçamento
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(summaryText);
+                      showToast('Resumo copiado para a área de transferência!', 'info');
+                    }}
+                    className="flex-1 flex items-center justify-center gap-3 py-5 bg-slate-100 text-slate-700 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-200 transition-all active:scale-95"
+                  >
+                    <Copy size={18} />
+                    Copiar
+                  </button>
+                  <button
+                    onClick={() => {
+                      generateProfessionalQuote({
+                        pieceName: 'Peça de Teste', // Fallback
+                        material: calcInputs.materialType || 'PLA',
+                        weight: calcInputs.partWeight,
+                        time: calcInputs.printingTime,
+                        quantity: 1,
+                        unitValue: Number(calcResults.total.toFixed(2)),
+                        total: Number(calcResults.total.toFixed(2)),
+                        details: {
+                          materialCost: calcResults.materialCost,
+                          energyCost: calcResults.energyCost,
+                          laborCost: calcResults.laborCost,
+                          maintenanceCost: calcResults.maintenanceCost,
+                          fixedRateCost: calcResults.fixedRateCost,
+                          profit: calcResults.profit
+                        }
+                      });
+                      showToast('Iniciando download do PDF...', 'success');
+                    }}
+                    className="flex-1 flex items-center justify-center gap-3 py-5 bg-sky-500 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-sky-600 shadow-2xl shadow-sky-200 transition-all active:scale-95"
+                  >
+                    <FileText size={18} />
+                    Baixar PDF
+                  </button>
+                </div>
               </div>
             </div>
           </div>
