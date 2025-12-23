@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { X, TrendingUp, TrendingDown, Trash2, FileText, ArrowUpRight, ArrowDownLeft, Printer } from 'lucide-react';
 import { CapitalInjection, Order, Expense } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { generateAnnualReportPDF } from '../../utils/pdfGenerator';
 import { MONTH_NAMES } from '../../constants';
 
 interface CapitalReportModalProps {
@@ -89,102 +88,12 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
         return { buckets, totals: finalTotals };
     }, [orders, expenses, injections, selectedYear]);
 
-    const handleDownloadPDF = () => {
-        const doc = new jsPDF();
-
-        // Header
-        doc.setFillColor(15, 23, 42); // slate-900
-        doc.rect(0, 0, 210, 40, 'F');
-
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text('3D Print Flow - Balanço Anual', 14, 25);
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Referência: ${selectedYear} | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 32);
-
-        // Summary Cards Section
-        let yPos = 50;
-        doc.setTextColor(51, 65, 85); // slate-700
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Resumo Geral', 14, yPos);
-
-        yPos += 10;
-        const summaryData = [
-            ['Faturamento Total', formatCurrency(yearlyData.totals.revenue)],
-            ['Lucro Líquido (Estimado)', formatCurrency(yearlyData.totals.revenue - yearlyData.totals.expenses)],
-            ['Total de Pedidos', yearlyData.totals.orders.toString()],
-            ['Despesas Pagas', formatCurrency(yearlyData.totals.expenses)],
-            ['Aportes de Capital', formatCurrency(yearlyData.totals.injections)],
-            ['Retiradas', formatCurrency(yearlyData.totals.withdrawals)]
-        ];
-
-        autoTable(doc, {
-            startY: yPos,
-            head: [['Indicador', 'Valor']],
-            body: summaryData,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
-            bodyStyles: { textColor: 50 },
-            columnStyles: {
-                0: { fontStyle: 'bold', cellWidth: 100 },
-                1: { cellWidth: 80, halign: 'right' }
-            }
+    const handleDownloadPDF = async () => {
+        await generateAnnualReportPDF({
+            year: selectedYear,
+            totals: yearlyData.totals,
+            buckets: yearlyData.buckets
         });
-
-        // Monthly Breakdown
-        yPos = (doc as any).lastAutoTable.finalY + 15;
-        doc.text('Detalhamento Mensal', 14, yPos);
-
-        yPos += 5;
-        const tableData = yearlyData.buckets.map((b, i) => [
-            MONTH_NAMES[i],
-            formatCurrency(b.revenue),
-            b.orders,
-            formatCurrency(b.expenses),
-            formatCurrency(b.revenue - b.expenses), // Simple profit
-            formatCurrency(b.injections - b.withdrawals)
-        ]);
-
-        autoTable(doc, {
-            startY: yPos,
-            head: [['Mês', 'Receita', 'Peds', 'Despesas', 'Lucro Op.', 'Fluxo Cap.']],
-            body: tableData,
-            theme: 'striped',
-            headStyles: { fillColor: [14, 165, 233], textColor: 255, fontStyle: 'bold' }, // sky-500
-            columnStyles: {
-                0: { fontStyle: 'bold' },
-                1: { halign: 'right' },
-                2: { halign: 'center' },
-                3: { halign: 'right' },
-                4: { halign: 'right', fontStyle: 'bold' },
-                5: { halign: 'right' }
-            },
-            foot: [[
-                'TOTAL',
-                formatCurrency(yearlyData.totals.revenue),
-                yearlyData.totals.orders,
-                formatCurrency(yearlyData.totals.expenses),
-                formatCurrency(yearlyData.totals.revenue - yearlyData.totals.expenses),
-                formatCurrency(yearlyData.totals.injections - yearlyData.totals.withdrawals)
-            ]],
-            footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } // slate-100
-        });
-
-        // Footer
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text('Gerado pelo sistema 3D Print Flow', 14, 285);
-            doc.text(`Página ${i} de ${pageCount}`, 190, 285, { align: 'right' });
-        }
-
-        doc.save(`Balanco_Anual_${selectedYear}.pdf`);
     };
 
     if (!isOpen) return null;

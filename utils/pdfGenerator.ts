@@ -140,3 +140,150 @@ export const generateProfessionalQuote = async (data: QuoteData) => {
     // Save PDF
     doc.save(`Orcamento_${data.pieceName.replace(/\s+/g, '_')}.pdf`);
 };
+
+interface AnnualReportData {
+    year: number;
+    totals: {
+        revenue: number;
+        orders: number;
+        expenses: number;
+        injections: number;
+        withdrawals: number;
+    };
+    buckets: Array<{
+        revenue: number;
+        orders: number;
+        expenses: number;
+        injections: number;
+        withdrawals: number;
+    }>;
+}
+
+export const generateAnnualReportPDF = async (data: AnnualReportData) => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    const { MONTH_NAMES } = await import('../constants');
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Color Palette (Consistent with Quote)
+    const skyBlue = [14, 165, 233]; // #0ea5e9
+    const darkSlate = [15, 23, 42]; // #0f172a
+    const lightSlate = [100, 116, 139]; // #64748b
+
+    // --- Header ---
+    doc.setFillColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('3D PRINT FLOW', 20, 22);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('RELATÓRIO DE BALANÇO ANUAL • GESTÃO FINANCEIRA', 20, 29);
+
+    doc.setFontSize(10);
+    doc.text(`ANO: ${data.year}`, pageWidth - 20, 22, { align: 'right' });
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - 20, 29, { align: 'right' });
+
+    // --- Summary Section ---
+    let yPos = 55;
+    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMO GERAL', 20, yPos);
+
+    doc.setDrawColor(skyBlue[0], skyBlue[1], skyBlue[2]);
+    doc.setLineWidth(0.5);
+    doc.line(20, yPos + 2, 60, yPos + 2);
+
+    yPos += 12;
+    const summaryData = [
+        ['Faturamento Total', formatCurrency(data.totals.revenue)],
+        ['Lucro Líquido (Operacional)', formatCurrency(data.totals.revenue - data.totals.expenses)],
+        ['Total de Pedidos', data.totals.orders.toString()],
+        ['Despesas Pagas', formatCurrency(data.totals.expenses)],
+        ['Aportes de Capital', formatCurrency(data.totals.injections)],
+        ['Retiradas de Capital', formatCurrency(data.totals.withdrawals)]
+    ];
+
+    autoTable(doc, {
+        startY: yPos,
+        margin: { left: 20, right: 20 },
+        body: summaryData,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 3, halign: 'center' },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 100, textColor: darkSlate as any },
+            1: { cellWidth: 'auto' }
+        }
+    });
+
+    // --- Monthly Breakdown ---
+    yPos = (doc as any).lastAutoTable.finalY + 15;
+    doc.text('DETALHAMENTO MENSAL', 20, yPos);
+    doc.line(20, yPos + 2, 85, yPos + 2);
+
+    yPos += 8;
+    const tableData = data.buckets.map((b, i) => [
+        MONTH_NAMES[i],
+        formatCurrency(b.revenue),
+        b.orders,
+        formatCurrency(b.expenses),
+        formatCurrency(b.revenue - b.expenses),
+        formatCurrency(b.injections - b.withdrawals)
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        margin: { left: 20, right: 20 },
+        head: [['Mês', 'Receita', 'Peds', 'Despesas', 'Lucro Op.', 'Fluxo Cap.']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+            fillColor: skyBlue as any,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { fontStyle: 'bold', halign: 'center' },
+            1: { halign: 'center' },
+            2: { halign: 'center' },
+            3: { halign: 'center' },
+            4: { halign: 'center', fontStyle: 'bold' },
+            5: { halign: 'center' }
+        },
+        styles: { fontSize: 8.5, halign: 'center' },
+        foot: [[
+            'TOTAL ANUAL',
+            formatCurrency(data.totals.revenue),
+            data.totals.orders.toString(),
+            formatCurrency(data.totals.expenses),
+            formatCurrency(data.totals.revenue - data.totals.expenses),
+            formatCurrency(data.totals.injections - data.totals.withdrawals)
+        ]],
+        footStyles: {
+            fillColor: [241, 245, 249],
+            textColor: darkSlate as any,
+            fontStyle: 'bold',
+            halign: 'center'
+        }
+    });
+
+    // --- Footer ---
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.setTextColor(lightSlate[0], lightSlate[1], lightSlate[2]);
+
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text('Gerado automaticamente pelo sistema 3D Print Flow', pageWidth / 2, 285, { align: 'center' });
+        doc.text(`Página ${i} de ${pageCount}`, pageWidth - 20, 285, { align: 'right' });
+    }
+
+    doc.save(`Balanco_Anual_${data.year}.pdf`);
+};
