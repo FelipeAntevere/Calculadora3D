@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 
@@ -20,9 +20,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [session, setSession] = useState<Session | null>(null);
     const [userRole, setUserRole] = useState<UserRole>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     // Helper to fetch role
-    const fetchUserRole = async (userId: string) => {
+    // Helper to fetch role with retry
+    const fetchUserRole = async (userId: string, retries = 2) => {
         try {
             const { data, error } = await supabase
                 .from('profiles')
@@ -31,37 +40,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .maybeSingle();
 
             if (error) {
+                if (retries > 0) {
+                    console.warn(`Erro ao buscar role, tentando novamente... (${retries} restantes)`);
+                    await new Promise(r => setTimeout(r, 1000));
+                    return fetchUserRole(userId, retries - 1);
+                }
                 console.error('Error fetching role:', error);
                 setUserRole('user'); // Default fallback
                 return;
             }
 
-            setUserRole((data?.role as UserRole) || 'user');
+            if (isMounted.current) {
+                setUserRole((data?.role as UserRole) || 'user');
+            }
         } catch (err) {
             console.error('Unexpected error fetching role:', err);
-            setUserRole('user');
+            if (isMounted.current) setUserRole('user');
         }
     };
 
     useEffect(() => {
-        let mounted = true;
-
-        // Safety Timeout: Force loading to false after 7 seconds if Supabase doesn't respond
+        // Safety Timeout: Force loading to false after 4 seconds
         const safetyTimeout = setTimeout(() => {
-            if (mounted && isLoading) {
-                console.warn('AuthContext: Tempo de carregamento excedido (timeout). Forçando encerramento do loader.');
+            if (isMounted.current && isLoading) {
+                console.warn('AuthContext: Tempo de carregamento excedido (4s). Forçando liberação da UI.');
                 setIsLoading(false);
             }
-        }, 7000);
+        }, 4000);
 
-        const initAuth = async () => {
+        const initAuth = async (retries = 2) => {
             try {
-                // Check current session
-                const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+                // Combined timeout for session fetch
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) =>
+                    setTimeout(() => reject(new Error('TIMEOUT')), 3000)
+                );
+
+                const { data: { session: initialSession }, error: sessionError } = await Promise.race([
+                    sessionPromise,
+                    timeoutPromise as any
+                ]);
 
                 if (sessionError) throw sessionError;
 
-                if (!mounted) return;
+                if (!isMounted.current) return;
 
                 setSession(initialSession);
                 setUser(initialSession?.user ?? null);
@@ -70,14 +92,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await fetchUserRole(initialSession.user.id);
                 }
             } catch (err) {
+                if (retries > 0 && isMounted.current) {
+                    console.warn(`AuthContext: Falha ao obter sessão, tentando novamente... (${retries} restantes)`);
+                    await new Promise(r => setTimeout(r, 1000));
+                    return initAuth(retries - 1);
+                }
                 console.error('AuthContext: Erro na inicialização da sessão:', err);
-                if (mounted) {
+                if (isMounted.current) {
                     setUser(null);
                     setSession(null);
                     setUserRole(null);
                 }
             } finally {
-                if (mounted) {
+                if (isMounted.current) {
                     setIsLoading(false);
                     clearTimeout(safetyTimeout);
                 }
@@ -90,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (!mounted) return;
+            if (!isMounted.current) return;
 
             console.log(`AuthContext: Evento de Auth: ${event}`);
 
@@ -109,7 +136,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => {
-            mounted = false;
             subscription.unsubscribe();
             clearTimeout(safetyTimeout);
         };

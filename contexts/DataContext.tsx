@@ -143,33 +143,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!user || isLoading) return;
         setIsLoading(true);
 
-        // Safety timeout to prevent stuck loading state
+        // Safety timeout - reduced to 8s to release UI faster
         const timeout = setTimeout(() => {
             console.warn('Refresh data timed out, clearing loading state.');
             setIsLoading(false);
-        }, 15000); // 15s safety net
+            setIsInitialLoad(false);
+        }, 8000);
 
         try {
-            const promises: Promise<any>[] = [
+            // FIRE ALL BUT DON'T FAIL IF ONE IS SLOW (allSettled)
+            await Promise.allSettled([
                 loadOrders(),
                 loadFilaments(),
                 loadParts(),
                 loadExpenses(),
-                loadInjections()
-            ];
-
-            // Only load calculator defaults on first load to prevent overwriting current session state
-            if (isInitialLoad) {
-                loadDefaults();
-            }
-
-            await Promise.all(promises);
+                loadInjections(),
+                isInitialLoad ? loadDefaults() : Promise.resolve()
+            ]);
         } catch (err) {
             console.error('Failed to load data:', err);
         } finally {
             clearTimeout(timeout);
             setIsLoading(false);
-            setIsInitialLoad(false); // Once the first batch is done, it's no longer initial
+            setIsInitialLoad(false);
         }
     };
 

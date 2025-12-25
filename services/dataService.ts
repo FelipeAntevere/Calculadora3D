@@ -1,7 +1,31 @@
-
 import { Order, OrderStatus, CostsConfig, DashboardMetrics, CostBreakdown, DailyData, StateDistribution, Filament, ReplacementPart, Expense, CapitalInjection } from '../types';
 import { DEFAULT_COSTS_CONFIG } from '../constants';
 import { supabase } from './supabase';
+
+/**
+ * Helper to retry asynchronous operations that might fail due to network instability.
+ * Includes a timeout mechanism to prevent hanging indefinitely.
+ */
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+  const timeoutPromise = new Promise<T>((_, reject) =>
+    setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 6000) // 6s timeout per attempt
+  );
+
+  try {
+    return await Promise.race([fn(), timeoutPromise]);
+  } catch (error: any) {
+    if (retries <= 1) {
+      console.error('withRetry: Todas as tentativas falharam.');
+      throw error;
+    }
+
+    const isTimeout = error.message === 'TIMEOUT_EXCEEDED';
+    console.warn(`Operação falhou (${isTimeout ? 'Timeout' : 'Erro'}), tentando novamente... (${retries - 1} restantes)`);
+
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return withRetry(fn, retries - 1, delay * 1.5);
+  }
+}
 
 /**
  * Parses a "YYYY-MM-DD" string (or ISO string) as midnight in the local timezone.
@@ -188,15 +212,15 @@ export const formatCurrency = (value: number) => {
 // --- DATA PERSISTENCE ---
 
 export const fetchOrders = async (): Promise<Order[]> => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('date', { ascending: true });
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('date', { ascending: true });
 
-  if (error) throw error;
-
-  // Mapping snake_case from DB to camelCase for App
-  return (data || []).map(o => {
+    if (error) throw error;
+    return data || [];
+  }).then(data => (data || []).map(o => {
     // Data normalization for corrupted encodings in existing records
     let cleanStatus = o.status;
     if (typeof cleanStatus === 'string') {
@@ -218,7 +242,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
       completionDate: o.completion_date,
       deliveryDate: o.delivery_date
     };
-  }) as Order[];
+  }) as Order[]);
 };
 
 export const upsertOrder = async (order: Partial<Order>) => {
@@ -324,20 +348,21 @@ export const updateOrderStatus = async (id: string, status: OrderStatus) => {
 };
 
 export const fetchFilaments = async (): Promise<Filament[]> => {
-  const { data, error } = await supabase
-    .from('filaments')
-    .select('*')
-    .order('created_at', { ascending: false });
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('filaments')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-
-  return (data || []).map(f => ({
+    if (error) throw error;
+    return data || [];
+  }).then(data => (data || []).map(f => ({
     ...f,
     initialWeight: f.initial_weight,
     currentWeight: f.current_weight,
     costPerKg: f.cost_per_kg,
     purchaseDate: f.purchase_date
-  })) as Filament[];
+  })) as Filament[]);
 };
 
 export const upsertFilament = async (filament: Partial<Filament>) => {
@@ -419,19 +444,20 @@ export const deleteFilament = async (id: string) => {
 };
 
 export const fetchParts = async (): Promise<ReplacementPart[]> => {
-  const { data, error } = await supabase
-    .from('replacement_parts')
-    .select('*')
-    .order('created_at', { ascending: false });
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('replacement_parts')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-
-  return (data || []).map(p => ({
+    if (error) throw error;
+    return data || [];
+  }).then(data => (data || []).map(p => ({
     ...p,
     unitCost: p.unit_cost,
     freight: p.freight,
     purchaseDate: p.purchase_date
-  })) as ReplacementPart[];
+  })) as ReplacementPart[]);
 };
 
 export const upsertPart = async (part: Partial<ReplacementPart>) => {
@@ -478,18 +504,19 @@ export const deletePart = async (id: string) => {
 
 
 export const fetchExpenses = async (): Promise<Expense[]> => {
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('*')
-    .order('due_date', { ascending: true });
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .order('due_date', { ascending: true });
 
-  if (error) throw error;
-
-  return (data || []).map(e => ({
+    if (error) throw error;
+    return data || [];
+  }).then(data => (data || []).map(e => ({
     ...e,
     dueDate: e.due_date,
     paidDate: e.paid_date
-  })) as Expense[];
+  })) as Expense[]);
 };
 
 export const upsertExpense = async (expense: Partial<Expense>) => {
@@ -558,14 +585,15 @@ export const updateExpenseStatus = async (id: string, status: string, paidDate?:
 };
 
 export const fetchCapitalInjections = async (): Promise<CapitalInjection[]> => {
-  const { data, error } = await supabase
-    .from('capital_injections')
-    .select('*')
-    .order('date', { ascending: false });
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('capital_injections')
+      .select('*')
+      .order('date', { ascending: false });
 
-  if (error) throw error;
-
-  return (data || []) as CapitalInjection[];
+    if (error) throw error;
+    return data || [];
+  }).then(data => (data || []) as CapitalInjection[]);
 };
 
 export const upsertCapitalInjection = async (injection: Partial<CapitalInjection>) => {
