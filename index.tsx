@@ -19,11 +19,11 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <AuthProvider>
-        <DataProvider>
-          <ToastProvider>
+        <ToastProvider>
+          <DataProvider>
             <App />
-          </ToastProvider>
-        </DataProvider>
+          </DataProvider>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   </React.StrictMode>

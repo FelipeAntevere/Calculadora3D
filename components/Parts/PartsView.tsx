@@ -140,8 +140,12 @@ export const PartsView: React.FC<PartsViewProps> = ({
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(part.unitCost + (part.freight || 0))}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium italic">({formatCurrency(part.unitCost)} un + {formatCurrency(part.freight || 0)} Frete)</span>
+                                                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                                    {formatCurrency((part.unitCost * part.quantity) + (part.freight || 0))}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 font-medium italic">
+                                                    ({formatCurrency(part.unitCost)} un × {part.quantity} + {formatCurrency(part.freight || 0)} Frete)
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-    Check, Search, Filter, Calendar, ChevronDown, ChevronUp, Edit2, Trash2, Copy, Plus, Clock, MapPin, Printer, ClipboardList, BarChart3, LayoutGrid, List, ShoppingBag, X
+    Check, Search, Filter, Calendar, ChevronDown, ChevronUp, Edit2, Trash2, Copy, Clock, MapPin, Printer, ClipboardList, BarChart3, LayoutGrid, List, ShoppingBag, X
 } from 'lucide-react';
 import { DropResult } from '@hello-pangea/dnd';
 import { KanbanBoard } from './Kanban/KanbanBoard';
@@ -113,13 +113,6 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                 <LayoutGrid size={20} />
                             </button>
                         </div>
-                        <button
-                            onClick={onNewOrder}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#0ea5e9] text-white rounded-2xl font-bold hover:bg-sky-400 transition-all shadow-lg shadow-sky-100 dark:shadow-sky-900/20"
-                        >
-                            <Plus size={20} />
-                            Novo Pedido
-                        </button>
                     </div>
                 </div>
 

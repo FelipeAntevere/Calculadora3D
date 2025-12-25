@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import { useOrders } from '../hooks/useOrders';
 import { useFilaments } from '../hooks/useFilaments';
 import { useParts } from '../hooks/useParts';
@@ -87,6 +88,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -185,15 +187,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const month = expenseMonthFilter === -1 ? new Date().getMonth() : expenseMonthFilter;
         const year = expenseYearFilter;
 
-        for (const template of templates) {
-            const dueDate = new Date(year, month, template.day).toISOString().split('T')[0];
-            await saveExpense({
-                description: template.description,
-                category: template.category,
-                amount: template.amount,
-                dueDate,
-                status: 'Pendente'
-            });
+        try {
+            for (const template of templates) {
+                const day = template.defaultDay || 1;
+                const dueDate = new Date(year, month, day).toISOString().split('T')[0];
+                await saveExpense({
+                    description: template.description,
+                    category: template.category,
+                    amount: template.defaultAmount || 0,
+                    dueDate,
+                    status: 'Pendente'
+                });
+            }
+            showToast?.('Despesas fixas lançadas com sucesso!', 'success');
+        } catch (error) {
+            console.error('Erro ao gerar despesas recorrentes:', error);
+            showToast?.('Erro ao lançar despesas fixas.', 'error');
         }
     };
 
@@ -304,7 +313,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const globalRevenue = orders.filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status)).reduce((acc, curr) => acc + ((curr.quantity || 1) * (curr.unitValue || 0)), 0);
         const globalPaidExpenses = expenses.filter(e => e.status === 'Pago').reduce((acc, curr) => acc + (curr.amount || 0), 0);
         const globalFilamentCost = filaments.reduce((acc, f) => acc + ((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0), 0);
-        const globalPartsCost = parts.reduce((acc, p) => acc + ((p.unitCost || 0) * (p.quantity || 0)), 0);
+        const globalPartsCost = parts.reduce((acc, p) => acc + ((p.unitCost || 0) * (p.quantity || 0)) + (p.freight || 0), 0);
         const globalInjections = injections.reduce((acc, curr) => acc + (curr.amount || 0), 0);
         const globalInventoryCost = globalFilamentCost + globalPartsCost;
         const globalBalance = globalRevenue + globalInjections - globalPaidExpenses - globalInventoryCost;
@@ -356,7 +365,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const periodPaidExpenses = expenses.filter(e => e.status === 'Pago' && matchesFilter(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
         const periodFilamentCost = filaments.reduce((acc, f) => matchesFilter(f.purchaseDate) ? acc + ((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0) : acc, 0);
-        const periodPartsCost = parts.reduce((acc, p) => matchesFilter(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) : acc, 0);
+        const periodPartsCost = parts.reduce((acc, p) => matchesFilter(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) + (p.freight || 0) : acc, 0);
         const periodInventoryCost = periodFilamentCost + periodPartsCost;
 
         // Accumulated
@@ -364,7 +373,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accumulatedInjections = injections.reduce((acc, curr) => isAccumulated(curr.date) ? acc + (curr.amount || 0) : acc, 0);
         const accumulatedPaidExpenses = expenses.filter(e => e.status === 'Pago' && isAccumulated(e.paidDate || e.dueDate)).reduce((acc, curr) => acc + (curr.amount || 0), 0);
         const accumulatedInventoryCost = filaments.reduce((acc, f) => isAccumulated(f.purchaseDate) ? acc + (((f.costPerKg || 0) * (f.initialWeight || 0)) + (f.freight || 0)) : acc, 0) +
-            parts.reduce((acc, p) => isAccumulated(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) : acc, 0);
+            parts.reduce((acc, p) => isAccumulated(p.purchaseDate) ? acc + ((p.unitCost || 0) * (p.quantity || 0)) + (p.freight || 0) : acc, 0);
         const hourlyRate = calcResults?.hourlyMaintenanceRate || 0;
         const accumulatedMaintenanceReserve = orders.filter(o => ['Pedidos', 'Produção', 'Finalizado', 'Entregue'].includes(o.status) && isAccumulated(o.date))
             .reduce((acc, curr) => acc + (curr.maintenanceCost !== undefined ? curr.maintenanceCost : (curr.time || 0) * (curr.quantity || 1) * hourlyRate), 0);

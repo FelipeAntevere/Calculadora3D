@@ -17,7 +17,28 @@ export const useExpenses = (user: any) => {
         setIsLoading(true);
         try {
             const data = await fetchExpenses();
-            setExpenses(data || []);
+
+            // Auto-check for overdue expenses
+            const today = new Date().toISOString().split('T')[0];
+            const updatesToProcess: Expense[] = [];
+
+            const processedData = data?.map(expense => {
+                if (expense.status === 'Pendente' && expense.dueDate && expense.dueDate < today) {
+                    const updated = { ...expense, status: 'Atrasado' };
+                    updatesToProcess.push(updated as Expense);
+                    return updated;
+                }
+                return expense;
+            }) || [];
+
+            setExpenses(processedData);
+
+            // Persist status changes in background
+            if (updatesToProcess.length > 0) {
+                Promise.all(updatesToProcess.map(e => updateExpenseStatus(e.id, 'Atrasado')))
+                    .catch(err => console.error('Failed to auto-update overdue expenses:', err));
+            }
+
         } catch (error) {
             console.error('Error fetching expenses:', error);
         } finally {

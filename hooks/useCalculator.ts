@@ -73,7 +73,11 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
             ...prev,
             printingTime: 0,
             partWeight: 0,
-            laborTimeSpent: 0
+            laborTimeSpent: 0,
+            packagingCost: 0,
+            extraItemsCost: 0,
+            otherDirectCosts: 0,
+            platformFeePercentage: 0
         }));
     };
 

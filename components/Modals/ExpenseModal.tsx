@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Expense } from '../../types';
+import { CurrencyInput } from '../Common/CurrencyInput';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface ExpenseModalProps {
@@ -28,19 +29,6 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
     useEscapeKey(onClose, isOpen);
 
     const [localExpense, setLocalExpense] = useState<Partial<Expense>>(expense);
-
-    const formatInitialValue = (val?: number) => {
-        if (!val) return '';
-        return val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-    };
-
-    const [localAmount, setLocalAmount] = useState(formatInitialValue(expense.amount));
-
-    useEffect(() => {
-        if (isOpen) {
-            setLocalAmount(formatInitialValue(expense.amount));
-        }
-    }, [isOpen, editingExpenseId, expense.amount]); // Added expense.amount to dependencies
 
     if (!isOpen) return null;
 
@@ -94,26 +82,10 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Valor (R$)</label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder="0,00"
-                                    value={localAmount}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        const digits = value.replace(/\D/g, '');
-                                        const realValue = Number(digits) / 100;
-
-                                        if (digits === '') {
-                                            setLocalAmount('');
-                                            setExpense({ ...expense, amount: 0 });
-                                        } else {
-                                            setLocalAmount(realValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-                                            setExpense({ ...expense, amount: realValue });
-                                        }
-                                    }}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-slate-200"
+                                <CurrencyInput
+                                    label="Valor"
+                                    value={expense.amount}
+                                    onChange={(val) => setExpense({ ...expense, amount: val })}
                                     required
                                 />
                             </div>

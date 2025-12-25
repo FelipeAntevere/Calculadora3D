@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { ReplacementPart, PartCategory } from '../../types';
+import { CurrencyInput } from '../Common/CurrencyInput';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface PartModalProps {
@@ -85,8 +86,8 @@ export const PartModal: React.FC<PartModalProps> = ({
                                 <input
                                     type="number"
                                     min="0"
-                                    value={part.quantity || ''}
-                                    onChange={(e) => setPart({ ...part, quantity: parseInt(e.target.value) || 0 })}
+                                    value={part.quantity ?? ''}
+                                    onChange={(e) => setPart({ ...part, quantity: e.target.value === '' ? undefined : parseInt(e.target.value) })}
                                     className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-white"
                                     placeholder="0"
                                 />
@@ -94,28 +95,16 @@ export const PartModal: React.FC<PartModalProps> = ({
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Custo Unitário (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={part.unitCost || ''}
-                                    onChange={(e) => setPart({ ...part, unitCost: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-white"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Frete (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={part.freight || ''}
-                                    onChange={(e) => setPart({ ...part, freight: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-white"
-                                    placeholder="0.00"
-                                />
-                            </div>
+                            <CurrencyInput
+                                label="Custo Unitário"
+                                value={part.unitCost}
+                                onChange={(val) => setPart({ ...part, unitCost: val })}
+                            />
+                            <CurrencyInput
+                                label="Frete"
+                                value={part.freight}
+                                onChange={(val) => setPart({ ...part, freight: val })}
+                            />
                         </div>
 
                         <div>

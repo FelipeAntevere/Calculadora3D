@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronDown, Check, DollarSign, Zap, Briefcase, Box, TrendingUp, Info, BarChart3, Wrench } from 'lucide-react';
+import { X, ChevronDown, Check, DollarSign, Zap, Briefcase, Box, TrendingUp, Info, BarChart3, Wrench, Clock, Package, Calculator as CalculatorIcon } from 'lucide-react';
+import { CurrencyInput } from '../Common/CurrencyInput';
 import { Order, OrderStatus } from '../../types';
 import { BRAZILIAN_STATES } from '../../constants';
 import { toLocalInputDate, formatCurrency } from '../../utils/formatters';
@@ -113,7 +114,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                     className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     {order.material || 'Selecione...'}
-                                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isOrderMaterialDropdownOpen ? 'rotate-180' : '')} />
+                                    <ChevronDown className={`w - 4 h - 4 text - slate - 400 transition - transform` + (isOrderMaterialDropdownOpen ? 'rotate-180' : '')} />
                                 </button>
                                 {isOrderMaterialDropdownOpen && (
                                     <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 origin-top overflow-hidden">
@@ -149,7 +150,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                     className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     {order.state || 'UF'}
-                                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isStateDropdownOpen ? 'rotate-180' : '')} />
+                                    <ChevronDown className={`w - 4 h - 4 text - slate - 400 transition - transform` + (isStateDropdownOpen ? 'rotate-180' : '')} />
                                 </button>
                                 {isStateDropdownOpen && (
                                     <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top max-h-48 overflow-y-auto">
@@ -171,10 +172,10 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Quantidade</label>
                             <input
                                 type="number"
-                                value={order.quantity || ''}
+                                value={order.quantity ?? ''}
                                 onChange={(e) => {
-                                    const val = e.target.value === '' ? 1 : parseInt(e.target.value);
-                                    setOrder({ ...order, quantity: isNaN(val) ? 1 : val });
+                                    const val = e.target.value;
+                                    setOrder({ ...order, quantity: val === '' ? undefined : parseInt(val) });
                                 }}
                                 className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                 placeholder="1"
@@ -189,7 +190,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                         className="w-full flex items-center justify-between bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium text-slate-700 dark:text-slate-200"
                                     >
                                         {order.status || 'Selecione...'}
-                                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ` + (isOrderStatusDropdownOpen ? 'rotate-180' : '')} />
+                                        <ChevronDown className={`w - 4 h - 4 text - slate - 400 transition - transform` + (isOrderStatusDropdownOpen ? 'rotate-180' : '')} />
                                     </button>
                                     {isOrderStatusDropdownOpen && (
                                         <div className="absolute left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] py-2 animate-in fade-in zoom-in-95 duration-150 origin-top overflow-hidden">
@@ -197,7 +198,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                                 <button
                                                     key={opt}
                                                     onClick={() => { setOrder({ ...order, status: opt as OrderStatus }); setIsOrderStatusDropdownOpen(false); }}
-                                                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors` + (order.status === opt ? ' bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : '')}
+                                                    className={`w - full flex items - center gap - 3 px - 4 py - 2 text - sm font - medium text - slate - 600 dark: text - slate - 300 hover: bg - slate - 50 dark: hover: bg - slate - 700 transition - colors` + (order.status === opt ? ' bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : '')}
                                                 >
                                                     <div className="w-4">{order.status === opt && <Check className="w-3.5 h-3.5 text-[#0ea5e9]" />}</div>
                                                     <span>{opt}</span>
@@ -219,9 +220,9 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                 <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Peso Aproximado (g)</label>
                                 <input
                                     type="number"
-                                    step="0.1"
-                                    value={order.weight || ''}
-                                    onChange={(e) => setOrder({ ...order, weight: parseFloat(e.target.value) || 0 })}
+                                    step="any"
+                                    value={order.weight ?? ''}
+                                    onChange={(e) => setOrder({ ...order, weight: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
                                     className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
                                     placeholder="0"
                                     readOnly={false}
@@ -234,10 +235,10 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                         <input
                                             type="number"
                                             min="0"
-                                            value={Math.floor(order.time || 0) || ''}
+                                            value={order.time !== undefined ? Math.floor(order.time) : ''}
                                             onChange={(e) => {
-                                                const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                const h = isNaN(val) ? 0 : val;
+                                                const val = e.target.value;
+                                                const h = val === '' ? 0 : parseInt(val);
                                                 const m = Math.round(((order.time || 0) - Math.floor(order.time || 0)) * 60);
                                                 setOrder({ ...order, time: h + (m / 60) });
                                             }}
@@ -251,10 +252,10 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                             type="number"
                                             min="0"
                                             max="59"
-                                            value={Math.round(((order.time || 0) - Math.floor(order.time || 0)) * 60) || ''}
+                                            value={order.time !== undefined ? Math.round((order.time - Math.floor(order.time)) * 60) : ''}
                                             onChange={(e) => {
-                                                const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                const val = e.target.value;
+                                                const m = val === '' ? 0 : Math.min(59, Math.max(0, parseInt(val)));
                                                 const h = Math.floor(order.time || 0);
                                                 setOrder({ ...order, time: h + (m / 60) });
                                             }}
@@ -265,39 +266,21 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Custo Unitário (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={order.unitCost || ''}
-                                    onChange={(e) => setOrder({ ...order, unitCost: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Venda Unitário (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={order.unitValue || ''}
-                                    onChange={(e) => setOrder({ ...order, unitValue: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Frete (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={order.freight || ''}
-                                    onChange={(e) => setOrder({ ...order, freight: parseFloat(e.target.value) || 0 })}
-                                    className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm outline-none font-medium focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 text-slate-900 dark:text-white"
-                                    placeholder="0.00"
-                                />
-                            </div>
+                            <CurrencyInput
+                                label="Custo Unitário"
+                                value={order.unitCost}
+                                onChange={(val) => setOrder({ ...order, unitCost: val })}
+                            />
+                            <CurrencyInput
+                                label="Venda Unitário"
+                                value={order.unitValue}
+                                onChange={(val) => setOrder({ ...order, unitValue: val })}
+                            />
+                            <CurrencyInput
+                                label="Frete"
+                                value={order.freight}
+                                onChange={(val) => setOrder({ ...order, freight: val })}
+                            />
                         </div>
                     </div>
 
@@ -319,7 +302,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Detalhamento dos custos originais da calculadora</span>
                                     </div>
                                 </div>
-                                <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isFinancialDetailsOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w - 5 h - 5 text - slate - 400 transition - transform duration - 300 ${isFinancialDetailsOpen ? 'rotate-180' : ''} `} />
                             </button>
 
                             {isFinancialDetailsOpen && (
@@ -333,8 +316,8 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                             { label: 'Custos Fixos', value: order.fixedRateCost, icon: Info, color: 'text-sky-500', bg: 'bg-sky-50 dark:bg-sky-900/10' },
                                             { label: 'Extras/Emb.', value: order.extrasCost, icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/10' },
                                         ].map((item, idx) => (
-                                            <div key={idx} className={`p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center gap-3 ${item.bg}`}>
-                                                <item.icon className={`w-4 h-4 ${item.color}`} />
+                                            <div key={idx} className={`p - 3 rounded - xl border border - slate - 100 dark: border - slate - 700 flex items - center gap - 3 ${item.bg} `}>
+                                                <item.icon className={`w - 4 h - 4 ${item.color} `} />
                                                 <div className="flex flex-col">
                                                     <span className="text-[9px] font-bold text-slate-400 uppercase">{item.label}</span>
                                                     <span className="text-sm font-black text-slate-700 dark:text-slate-200">{formatCurrency(item.value || 0)}</span>

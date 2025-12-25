@@ -105,7 +105,7 @@ export const generateProfessionalQuote = async (data: QuoteData) => {
             ['Custo de Material', formatCurrency(data.details.materialCost)],
             ['Energia & Insumos', formatCurrency(data.details.energyCost)],
             ['Mão de Obra', formatCurrency(data.details.laborCost)],
-            ['Manutenção Pró-Rata', formatCurrency(data.details.maintenanceCost)],
+            ['Manutenção', formatCurrency(data.details.maintenanceCost)],
             ['Custos Operacionais', formatCurrency(data.details.fixedRateCost)]
         ],
         styles: { fontSize: 9, cellPadding: 2 },

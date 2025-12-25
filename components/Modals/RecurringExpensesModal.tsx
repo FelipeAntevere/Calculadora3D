@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2, Repeat, Edit2, Check } from 'lucide-react';
 import { RecurringExpenseTemplate } from '../../types';
+import { CurrencyInput } from '../Common/CurrencyInput';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -38,16 +39,6 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
     });
 
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [localAmount, setLocalAmount] = useState('');
-
-    // Reset localAmount when switching modes or submitting
-    const updateLocalAmount = (val?: number) => {
-        if (val === undefined || val === null) {
-            setLocalAmount('');
-        } else {
-            setLocalAmount(val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-        }
-    };
 
     if (!isOpen) return null;
 
@@ -75,7 +66,6 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
             }
             // Reset form
             setNewTemplate({ description: '', category: '', defaultDay: undefined, defaultAmount: undefined });
-            setLocalAmount('');
         }
     };
 
@@ -86,13 +76,11 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
             defaultDay: template.defaultDay,
             defaultAmount: template.defaultAmount
         });
-        updateLocalAmount(template.defaultAmount);
         setEditingId(template.id);
     };
 
     const handleCancelEdit = () => {
         setNewTemplate({ description: '', category: '', defaultDay: undefined, defaultAmount: undefined });
-        setLocalAmount('');
         setEditingId(null);
     };
 
@@ -143,26 +131,11 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
                                 />
                             </div>
                             <div className="md:col-span-4">
-                                <label className={`block text-xs font-bold mb-2 uppercase tracking-tight ${editingId ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-slate-300'}`}>Valor (R$)</label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder="0,00"
-                                    value={localAmount}
-                                    onChange={e => {
-                                        const value = e.target.value;
-                                        const digits = value.replace(/\D/g, '');
-                                        const realValue = Number(digits) / 100;
-
-                                        if (digits === '') {
-                                            setLocalAmount('');
-                                            setNewTemplate({ ...newTemplate, defaultAmount: undefined });
-                                        } else {
-                                            setLocalAmount(realValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-                                            setNewTemplate({ ...newTemplate, defaultAmount: realValue });
-                                        }
-                                    }}
-                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500/20 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-500"
+                                <CurrencyInput
+                                    label="Valor Padrão"
+                                    value={newTemplate.defaultAmount}
+                                    onChange={(val) => setNewTemplate({ ...newTemplate, defaultAmount: val })}
+                                    className="!py-2.5"
                                 />
                             </div>
                             <div className="md:col-span-1 flex gap-2">

@@ -237,19 +237,19 @@ export const fetchOrders = async (): Promise<Order[]> => {
       powerConsumption: o.power_consumption,
       laborTime: o.labor_time,
       shippingDate: o.shipping_date,
-      materialCost: o.material_cost,
+      materialCost: Number(o.material_cost || 0),
       productionDate: o.production_date,
       completionDate: o.completion_date,
       deliveryDate: o.delivery_date,
-      maintenanceCost: o.maintenance_cost,
-      energyCost: o.energy_cost,
-      laborCost: o.labor_cost,
-      fixedRateCost: o.fixed_rate_cost,
-      extrasCost: o.extras_cost,
-      platformFeeValue: o.platform_fee_value,
-      profitMarginValue: o.profit_margin_value,
-      filamentCostPerKg: o.filament_cost_per_kg,
-      laborHourValue: o.labor_hour_value
+      maintenanceCost: Number(o.maintenance_cost || 0),
+      energyCost: Number(o.energy_cost || 0),
+      laborCost: Number(o.labor_cost || 0),
+      fixedRateCost: Number(o.fixed_rate_cost || 0),
+      extrasCost: Number(o.extras_cost || 0),
+      platformFeeValue: Number(o.platform_fee_value || 0),
+      profitMarginValue: Number(o.profit_margin_value || 0),
+      filamentCostPerKg: Number(o.filament_cost_per_kg || 0),
+      laborHourValue: Number(o.labor_hour_value || 0)
     };
   }) as Order[]);
 };
@@ -319,19 +319,19 @@ export const upsertOrder = async (order: Partial<Order>) => {
     powerConsumption: data.power_consumption,
     laborTime: data.labor_time,
     shippingDate: data.shipping_date,
-    materialCost: data.material_cost,
+    materialCost: Number(data.material_cost || 0),
     productionDate: data.production_date,
     completionDate: data.completion_date,
     deliveryDate: data.delivery_date,
-    maintenanceCost: data.maintenance_cost,
-    energyCost: data.energy_cost,
-    laborCost: data.labor_cost,
-    fixedRateCost: data.fixed_rate_cost,
-    extrasCost: data.extras_cost,
-    platformFeeValue: data.platform_fee_value,
-    profitMarginValue: data.profit_margin_value,
-    filamentCostPerKg: data.filament_cost_per_kg,
-    laborHourValue: data.labor_hour_value
+    maintenanceCost: Number(data.maintenance_cost || 0),
+    energyCost: Number(data.energy_cost || 0),
+    laborCost: Number(data.labor_cost || 0),
+    fixedRateCost: Number(data.fixed_rate_cost || 0),
+    extrasCost: Number(data.extras_cost || 0),
+    platformFeeValue: Number(data.platform_fee_value || 0),
+    profitMarginValue: Number(data.profit_margin_value || 0),
+    filamentCostPerKg: Number(data.filament_cost_per_kg || 0),
+    laborHourValue: Number(data.labor_hour_value || 0)
   } as Order;
 };
 
@@ -504,7 +504,6 @@ export const upsertPart = async (part: Partial<ReplacementPart>) => {
   };
 
   delete (partData as any).unitCost;
-  delete (partData as any).freight;
   delete (partData as any).purchaseDate;
 
   const { data, error } = await supabase

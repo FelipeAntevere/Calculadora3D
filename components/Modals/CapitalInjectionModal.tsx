@@ -3,6 +3,7 @@ import { X, Save, TrendingUp, TrendingDown } from 'lucide-react';
 import { CapitalInjection } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useToast } from '../../contexts/ToastContext';
+import { CurrencyInput } from '../Common/CurrencyInput';
 
 interface CapitalInjectionModalProps {
     isOpen: boolean;
@@ -23,7 +24,7 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
     useEscapeKey(onClose, isOpen);
 
     const [description, setDescription] = useState('');
-    const [amount, setAmount] = useState<string>('');
+    const [amount, setAmount] = useState<number | undefined>(undefined);
     const [date, setDate] = useState('');
     const [loading, setLoading] = useState(false);
     const { showToast } = useToast();
@@ -33,7 +34,7 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             setDescription(injection?.description || (isAdd ? 'Aporte de Capital' : 'Retirada de Capital'));
-            setAmount(injection?.amount ? Math.abs(injection.amount).toString() : '');
+            setAmount(injection?.amount ? Math.abs(injection.amount) : undefined);
             setDate(injection?.date || new Date().toISOString().split('T')[0]);
         }
     }, [isOpen, injection, isAdd]);
@@ -41,8 +42,13 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        if (!amount) {
+            showToast('Por favor, insira um valor válido', 'error');
+            setLoading(false);
+            return;
+        }
         try {
-            const numericAmount = parseFloat(amount);
+            const numericAmount = amount;
             const finalAmount = isAdd ? Math.abs(numericAmount) : -Math.abs(numericAmount);
 
             await onSave({
@@ -99,17 +105,12 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
-                                Valor (R$)
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
+                        <div className="col-span-1">
+                            <CurrencyInput
+                                label="Valor"
                                 value={amount}
-                                onChange={e => setAmount(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all placeholder:text-slate-400"
-                                placeholder="0,00"
+                                onChange={(val) => setAmount(val)}
+                                className="!border-slate-200 dark:!border-slate-700 !py-3"
                                 required
                             />
                         </div>

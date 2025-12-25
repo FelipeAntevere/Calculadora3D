@@ -9,14 +9,15 @@ import {
     Percent,
     Briefcase,
     Wrench,
-    DollarSign,
     Plus,
     ChevronDown,
     ChevronUp,
     CheckCircle2,
     Package,
-    ShoppingBag
+    ShoppingBag,
+    DollarSign
 } from 'lucide-react';
+import { CurrencyInput } from '../Common/CurrencyInput';
 import { formatCurrency } from '../../utils/formatters';
 import { PricingCalculatorInputs, Order } from '../../types';
 import { useToast } from '../../contexts/ToastContext';
@@ -81,19 +82,9 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
         machine: true
     });
 
-    const onSaveDefaults = () => {
-        handleSaveDefaults();
-        showToast("Padrão atualizado com sucesso!", "success");
-    };
 
-    const onLoadDefaults = () => {
-        const success = handleLoadDefaults();
-        if (success) {
-            showToast("Configurações restauradas com sucesso!", "success");
-        } else {
-            showToast("Nenhum padrão encontrado!", "info");
-        }
-    };
+
+
 
     const toggleSection = (section: keyof typeof expandedSections) => {
         setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -107,21 +98,8 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                     <p className="text-slate-500 text-sm font-medium">Os valores calculados aqui serão os usados no Dashboard ao salvar.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={onSaveDefaults}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-                    >
-                        <Save className="w-4 h-4" />
-                        Salvar Padrão
-                    </button>
-                    <button
-                        onClick={onLoadDefaults}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 transition-all border-sky-100 dark:border-sky-900/50"
-                        title="Carrega as últimas configurações salvas"
-                    >
-                        <RefreshCw className="w-4 h-4 transform rotate-180" />
-                        Carregar Salvo
-                    </button>
+
+
                     <button
                         onClick={handleResetInputs}
                         className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
@@ -172,13 +150,14 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                             <input
                                                 type="number"
                                                 min="0"
-                                                value={Math.floor(localInputs.printingTime || 0) || ''}
+                                                value={localInputs.printingTime !== undefined ? Math.floor(localInputs.printingTime) : ''}
                                                 onChange={(e) => {
-                                                    const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                    const h = isNaN(val) ? 0 : val;
+                                                    const val = e.target.value;
+                                                    const h = val === '' ? 0 : parseInt(val);
                                                     const currentM = Math.round(((localInputs.printingTime || 0) - Math.floor(localInputs.printingTime || 0)) * 60);
                                                     setLocalInputs({ ...localInputs, printingTime: h + (currentM / 60) });
                                                 }}
+                                                onFocus={(e) => e.target.select()}
                                                 className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
                                                 placeholder="0"
                                             />
@@ -189,13 +168,14 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                                 type="number"
                                                 min="0"
                                                 max="59"
-                                                value={Math.round(((localInputs.printingTime || 0) - Math.floor(localInputs.printingTime || 0)) * 60) || ''}
+                                                value={localInputs.printingTime !== undefined ? Math.round((localInputs.printingTime - Math.floor(localInputs.printingTime)) * 60) : ''}
                                                 onChange={(e) => {
-                                                    const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                    const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                    const val = e.target.value;
+                                                    const m = val === '' ? 0 : Math.min(59, Math.max(0, parseInt(val)));
                                                     const h = Math.floor(localInputs.printingTime || 0);
                                                     setLocalInputs({ ...localInputs, printingTime: h + (m / 60) });
                                                 }}
+                                                onFocus={(e) => e.target.select()}
                                                 className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
                                                 placeholder="0"
                                             />
@@ -207,15 +187,13 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                     <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Peso da peça (gramas)</label>
                                     <input
                                         type="number"
-                                        value={localInputs.partWeight || ''}
+                                        step="any"
+                                        value={localInputs.partWeight ?? ''}
                                         onChange={(e) => {
                                             const val = e.target.value;
-                                            if (val === '') {
-                                                setLocalInputs({ ...localInputs, partWeight: 0 });
-                                            } else {
-                                                setLocalInputs({ ...localInputs, partWeight: parseFloat(val) });
-                                            }
+                                            setLocalInputs({ ...localInputs, partWeight: val === '' ? undefined as any : parseFloat(val) });
                                         }}
+                                        onFocus={(e) => e.target.select()}
                                         className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500/10 ` + (localInputs.partWeight === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')}
                                         placeholder="0"
                                     />
@@ -233,11 +211,19 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         {expandedSections.material && (
                             <div className="px-6 pb-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo do filamento por kg</label>
-                                        <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={localInputs.filamentCostPerKg || ''} onChange={(e) => setLocalInputs({ ...localInputs, filamentCostPerKg: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (localInputs.filamentCostPerKg === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" /></div>
-                                    </div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Consumo da impressora (kWh/h)</label><input type="number" step="0.01" value={localInputs.printerConsumption || ''} onChange={(e) => setLocalInputs({ ...localInputs, printerConsumption: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (localInputs.printerConsumption === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.15" /></div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo do kWh</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" step="0.01" value={localInputs.kWhCost || ''} onChange={(e) => setLocalInputs({ ...localInputs, kWhCost: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (localInputs.kWhCost === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.70" /></div></div>
+                                    <CurrencyInput
+                                        value={localInputs.filamentCostPerKg}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, filamentCostPerKg: val })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5 !bg-[#f8fafc] dark:!bg-slate-900"
+                                        label="Custo do filamento por kg"
+                                    />
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Consumo da impressora (kWh/h)</label><input type="number" step="any" value={localInputs.printerConsumption ?? ''} onChange={(e) => setLocalInputs({ ...localInputs, printerConsumption: e.target.value === '' ? undefined as any : parseFloat(e.target.value) })} onFocus={(e) => e.target.select()} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/10 ` + (localInputs.printerConsumption === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.15" /></div>
+                                    <CurrencyInput
+                                        value={localInputs.kWhCost}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, kWhCost: val })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5 !bg-[#f8fafc] dark:!bg-slate-900"
+                                        label="Custo do kWh"
+                                    />
                                 </div>
                                 <div>
                                     <div className="flex items-center justify-between mb-2"><label className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]"><Percent className="w-3 h-3" /> Perda de Filamento</label><span className="text-xs font-black text-sky-500">{localInputs.filamentLossPercentage}%</span></div>
@@ -256,13 +242,12 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         {expandedSections.labor && (
                             <div className="px-6 pb-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Valor da sua hora de trabalho</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span>
-                                            <input type="number" value={localInputs.laborHourValue || ''} onChange={(e) => setLocalInputs({ ...localInputs, laborHourValue: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.laborHourValue === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" />
-                                        </div>
-                                    </div>
+                                    <CurrencyInput
+                                        value={localInputs.laborHourValue}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, laborHourValue: val })}
+                                        className="!border-slate-200 dark:!border-slate-700 !py-2.5"
+                                        label="Valor da sua hora de trabalho"
+                                    />
                                     <div>
                                         <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas de trabalho manual</label>
                                         <div className="flex items-center gap-2">
@@ -270,13 +255,14 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                                 <input
                                                     type="number"
                                                     min="0"
-                                                    value={Math.floor(localInputs.laborTimeSpent || 0) || ''}
+                                                    value={localInputs.laborTimeSpent !== undefined ? Math.floor(localInputs.laborTimeSpent) : ''}
                                                     onChange={(e) => {
-                                                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                        const h = isNaN(val) ? 0 : val;
+                                                        const val = e.target.value;
+                                                        const h = val === '' ? 0 : parseInt(val);
                                                         const currentM = Math.round(((localInputs.laborTimeSpent || 0) - Math.floor(localInputs.laborTimeSpent || 0)) * 60);
                                                         setLocalInputs({ ...localInputs, laborTimeSpent: h + (currentM / 60) });
                                                     }}
+                                                    onFocus={(e) => e.target.select()}
                                                     className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
                                                     placeholder="0"
                                                 />
@@ -287,13 +273,14 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                                     type="number"
                                                     min="0"
                                                     max="59"
-                                                    value={Math.round(((localInputs.laborTimeSpent || 0) - Math.floor(localInputs.laborTimeSpent || 0)) * 60) || ''}
+                                                    value={localInputs.laborTimeSpent !== undefined ? Math.round((localInputs.laborTimeSpent - Math.floor(localInputs.laborTimeSpent)) * 60) : ''}
                                                     onChange={(e) => {
-                                                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                        const m = Math.min(59, Math.max(0, isNaN(val) ? 0 : val));
+                                                        const val = e.target.value;
+                                                        const m = val === '' ? 0 : Math.min(59, Math.max(0, parseInt(val)));
                                                         const h = Math.floor(localInputs.laborTimeSpent || 0);
                                                         setLocalInputs({ ...localInputs, laborTimeSpent: h + (m / 60) });
                                                     }}
+                                                    onFocus={(e) => e.target.select()}
                                                     className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 text-slate-700 dark:text-slate-200 hide-spin-buttons"
                                                     placeholder="0"
                                                 />
@@ -301,8 +288,13 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                             </div>
                                         </div>
                                     </div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custos fixos mensais</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span><input type="number" value={localInputs.fixedMonthlyCosts || ''} onChange={(e) => setLocalInputs({ ...localInputs, fixedMonthlyCosts: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.fixedMonthlyCosts === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" /></div></div>
-                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas produtivas no mês</label><input type="number" value={localInputs.productiveHoursMonth || ''} onChange={(e) => setLocalInputs({ ...localInputs, productiveHoursMonth: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.productiveHoursMonth === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="160" /></div>
+                                    <CurrencyInput
+                                        value={localInputs.fixedMonthlyCosts}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, fixedMonthlyCosts: val || 0 })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5"
+                                        label="Custos fixos mensais"
+                                    />
+                                    <div><label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Horas produtivas no mês</label><input type="number" value={localInputs.productiveHoursMonth || ''} onChange={(e) => setLocalInputs({ ...localInputs, productiveHoursMonth: parseFloat(e.target.value) || 0 })} onFocus={(e) => e.target.select()} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 ` + (localInputs.productiveHoursMonth === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="160" /></div>
                                 </div>
                                 <div>
                                     <div className="flex items-center justify-between mb-2"><label className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]"><Percent className="w-3 h-3" /> Margem de Lucro</label><span className="text-xs font-black text-sky-500">{localInputs.profitMargin}%</span></div>
@@ -321,27 +313,24 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                         {expandedSections['packaging' as keyof typeof expandedSections] && (
                             <div className="px-6 pb-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Custo da Embalagem (Caixa, etc)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span>
-                                            <input type="number" value={localInputs.packagingCost || ''} onChange={(e) => setLocalInputs({ ...localInputs, packagingCost: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500/10 ` + (localInputs.packagingCost === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Extras (Brindes, Fitas, etc)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span>
-                                            <input type="number" value={localInputs.extraItemsCost || ''} onChange={(e) => setLocalInputs({ ...localInputs, extraItemsCost: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500/10 ` + (localInputs.extraItemsCost === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider text-[10px]">Outros Custos Adicionais</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">R$</span>
-                                            <input type="number" value={localInputs.otherDirectCosts || ''} onChange={(e) => setLocalInputs({ ...localInputs, otherDirectCosts: parseFloat(e.target.value) || 0 })} className={`w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500/10 ` + (localInputs.otherDirectCosts === 0 ? 'text-slate-400 font-normal' : 'text-slate-700 dark:text-slate-200')} placeholder="0.00" />
-                                        </div>
-                                    </div>
+                                    <CurrencyInput
+                                        value={localInputs.packagingCost}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, packagingCost: val || 0 })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5"
+                                        label="Custo da Embalagem"
+                                    />
+                                    <CurrencyInput
+                                        value={localInputs.extraItemsCost}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, extraItemsCost: val || 0 })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5"
+                                        label="Extras (Brindes, Fitas, etc)"
+                                    />
+                                    <CurrencyInput
+                                        value={localInputs.otherDirectCosts}
+                                        onChange={(val) => setLocalInputs({ ...localInputs, otherDirectCosts: val || 0 })}
+                                        className="!border-slate-100 dark:!border-slate-700 !py-2.5"
+                                        label="Outros Custos Adicionais"
+                                    />
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <label className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]">
@@ -427,6 +416,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({
                                         materialCost: Number(calcResults.materialCost.toFixed(2)),
                                         energyCost: Number(calcResults.energyCost.toFixed(2)),
                                         laborCost: Number(calcResults.laborCost.toFixed(2)),
+                                        maintenanceCost: Number(calcResults.maintenanceCost.toFixed(2)),
                                         fixedRateCost: Number(calcResults.fixedRateCost.toFixed(2)),
                                         extrasCost: Number(calcResults.extrasCost.toFixed(2)),
                                         platformFeeValue: Number(calcResults.platformFeeValue.toFixed(2)),
