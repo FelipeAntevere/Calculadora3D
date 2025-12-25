@@ -75,6 +75,14 @@ export interface Order {
   productionDate?: string;
   completionDate?: string;
   deliveryDate?: string;
+  energyCost?: number;
+  laborCost?: number;
+  fixedRateCost?: number;
+  extrasCost?: number;
+  platformFeeValue?: number;
+  profitMarginValue?: number;
+  filamentCostPerKg?: number;
+  laborHourValue?: number;
 }
 
 export interface CostsConfig {
@@ -132,6 +140,10 @@ export interface PricingCalculatorInputs {
   fixedMonthlyCosts: number;
   productiveHoursMonth: number;
   profitMargin: number;
+  packagingCost: number;
+  extraItemsCost: number;
+  otherDirectCosts: number;
+  platformFeePercentage: number;
   materialType?: string;
 }
 

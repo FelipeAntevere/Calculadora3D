@@ -49,7 +49,7 @@ const Auth: React.FC = () => {
                     <div className="bg-[#0ea5e9] p-3 rounded-2xl shadow-lg shadow-sky-100 mb-4">
                         <Printer className="text-white w-8 h-8" />
                     </div>
-                    <h1 className="text-3xl font-black text-slate-800">3D Print Flow</h1>
+                    <h1 className="text-3xl font-black text-slate-800">The Beginning</h1>
                     <p className="text-slate-500 font-medium mt-2">Gerenciamento profissional para impressão 3D</p>
                 </div>
 

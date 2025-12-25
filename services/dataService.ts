@@ -240,7 +240,16 @@ export const fetchOrders = async (): Promise<Order[]> => {
       materialCost: o.material_cost,
       productionDate: o.production_date,
       completionDate: o.completion_date,
-      deliveryDate: o.delivery_date
+      deliveryDate: o.delivery_date,
+      maintenanceCost: o.maintenance_cost,
+      energyCost: o.energy_cost,
+      laborCost: o.labor_cost,
+      fixedRateCost: o.fixed_rate_cost,
+      extrasCost: o.extras_cost,
+      platformFeeValue: o.platform_fee_value,
+      profitMarginValue: o.profit_margin_value,
+      filamentCostPerKg: o.filament_cost_per_kg,
+      laborHourValue: o.labor_hour_value
     };
   }) as Order[]);
 };
@@ -260,7 +269,15 @@ export const upsertOrder = async (order: Partial<Order>) => {
     maintenance_cost: order.maintenanceCost, // NEW MAPPING
     production_date: order.productionDate || null,
     completion_date: order.completionDate || null,
-    delivery_date: order.deliveryDate || null
+    delivery_date: order.deliveryDate || null,
+    energy_cost: order.energyCost,
+    labor_cost: order.laborCost,
+    fixed_rate_cost: order.fixedRateCost,
+    extras_cost: order.extrasCost,
+    platform_fee_value: order.platformFeeValue,
+    profit_margin_value: order.profitMarginValue,
+    filament_cost_per_kg: order.filamentCostPerKg,
+    labor_hour_value: order.laborHourValue
   };
 
   // Remove camelCase fields that are now in snake_case
@@ -275,6 +292,14 @@ export const upsertOrder = async (order: Partial<Order>) => {
   delete (orderData as any).productionDate;
   delete (orderData as any).completionDate;
   delete (orderData as any).deliveryDate;
+  delete (orderData as any).energyCost;
+  delete (orderData as any).laborCost;
+  delete (orderData as any).fixedRateCost;
+  delete (orderData as any).extrasCost;
+  delete (orderData as any).platformFeeValue;
+  delete (orderData as any).profitMarginValue;
+  delete (orderData as any).filamentCostPerKg;
+  delete (orderData as any).laborHourValue;
 
   const { data, error } = await supabase
     .from('orders')
@@ -294,10 +319,19 @@ export const upsertOrder = async (order: Partial<Order>) => {
     powerConsumption: data.power_consumption,
     laborTime: data.labor_time,
     shippingDate: data.shipping_date,
+    materialCost: data.material_cost,
     productionDate: data.production_date,
     completionDate: data.completion_date,
     deliveryDate: data.delivery_date,
-    maintenanceCost: data.maintenance_cost // NEW RETURN MAPPING
+    maintenanceCost: data.maintenance_cost,
+    energyCost: data.energy_cost,
+    laborCost: data.labor_cost,
+    fixedRateCost: data.fixed_rate_cost,
+    extrasCost: data.extras_cost,
+    platformFeeValue: data.platform_fee_value,
+    profitMarginValue: data.profit_margin_value,
+    filamentCostPerKg: data.filament_cost_per_kg,
+    laborHourValue: data.labor_hour_value
   } as Order;
 };
 

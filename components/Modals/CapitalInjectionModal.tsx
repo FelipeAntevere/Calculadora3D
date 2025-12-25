@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, TrendingUp, TrendingDown } from 'lucide-react';
 import { CapitalInjection } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useToast } from '../../contexts/ToastContext';
 
 interface CapitalInjectionModalProps {
@@ -18,6 +19,9 @@ export const CapitalInjectionModal: React.FC<CapitalInjectionModalProps> = ({
     onSave,
     type
 }) => {
+    // Close on ESC
+    useEscapeKey(onClose, isOpen);
+
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState<string>('');
     const [date, setDate] = useState('');

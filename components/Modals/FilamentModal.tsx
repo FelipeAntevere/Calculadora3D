@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ChevronDown } from 'lucide-react';
-import { Filament } from '../../types';
+import { Filament, FilamentMaterial } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface FilamentModalProps {
     isOpen: boolean;
@@ -29,6 +30,10 @@ export const FilamentModal: React.FC<FilamentModalProps> = ({
     onSave,
     materialOptions
 }) => {
+    // Close on ESC
+    useEscapeKey(onClose, isOpen);
+
+    const [localFilament, setLocalFilament] = useState<Partial<Filament>>(filament);
     const [isMaterialDropdownOpen, setIsMaterialDropdownOpen] = useState(false);
 
     if (!isOpen) return null;

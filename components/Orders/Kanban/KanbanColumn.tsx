@@ -7,11 +7,12 @@ interface KanbanColumnProps {
     status: string;
     orders: Order[];
     onCardClick: (order: Order) => void;
+    onViewFinancials: (order: Order) => void;
     colorFn: (status: any) => string;
     onDelete: (id: string) => void;
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, orders, onCardClick, colorFn, onDelete }) => {
+export const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, orders, onCardClick, onViewFinancials, colorFn, onDelete }) => {
     // Determine header color based on status (simplified mapping or use the passed function)
     const getHeaderColor = () => {
         if (status === 'Pedidos') return 'bg-yellow-500';
@@ -53,6 +54,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, orders, onCa
                                 order={order}
                                 index={index}
                                 onClick={onCardClick}
+                                onViewFinancials={onViewFinancials}
                                 onDelete={onDelete}
                                 dateField={
                                     status === 'Produção' ? 'productionDate' :

@@ -8,6 +8,7 @@ interface KanbanBoardProps {
     statusOptions: string[];
     onDragEnd: (result: DropResult) => void;
     onCardClick: (order: Order) => void;
+    onViewFinancials: (order: Order) => void;
     getStatusStyle: (status: OrderStatus) => string;
     onDelete: (id: string) => void;
 }
@@ -17,6 +18,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     statusOptions,
     onDragEnd,
     onCardClick,
+    onViewFinancials,
     getStatusStyle,
     onDelete
 }) => {
@@ -32,6 +34,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                 status={status}
                                 orders={statusOrders}
                                 onCardClick={onCardClick}
+                                onViewFinancials={onViewFinancials}
                                 colorFn={getStatusStyle}
                                 onDelete={onDelete}
                             />

@@ -23,6 +23,10 @@ export const INITIAL_CALC_INPUTS: PricingCalculatorInputs = {
   fixedMonthlyCosts: 200,
   productiveHoursMonth: 720,
   profitMargin: 50,
+  packagingCost: 0,
+  extraItemsCost: 0,
+  otherDirectCosts: 0,
+  platformFeePercentage: 0,
   materialType: 'PLA'
 };
 
@@ -32,7 +36,7 @@ export const EMPTY_ORDER: Partial<Order> = {
   material: '',
   color: '',
   state: '',
-  status: undefined,
+  status: 'Pedidos',
   quantity: 1,
   unitValue: 0,
   unitCost: 0,

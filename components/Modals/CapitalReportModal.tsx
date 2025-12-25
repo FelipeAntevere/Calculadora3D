@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { X, TrendingUp, TrendingDown, Trash2, FileText, ArrowUpRight, ArrowDownLeft, Printer } from 'lucide-react';
 import { CapitalInjection, Order, Expense } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { formatCurrency } from '../../utils/formatters';
 import { generateAnnualReportPDF } from '../../utils/pdfGenerator';
 import { MONTH_NAMES } from '../../constants';
@@ -26,6 +27,11 @@ export const CapitalReportModal: React.FC<CapitalReportModalProps> = ({
 }) => {
     const currentYear = new Date().getFullYear();
     const [selectedYear, setSelectedYear] = useState(currentYear);
+
+    // Close on ESC
+    useEscapeKey(onClose, isOpen);
+
+    const [reportData, setReportData] = useState<any>(null);
 
     const yearlyData = useMemo(() => {
         // Init monthly buckets

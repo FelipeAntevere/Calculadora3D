@@ -39,7 +39,7 @@ export const generateProfessionalQuote = async (data: QuoteData) => {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('3D PRINT FLOW', 20, 25);
+    doc.text('THE BEGINNING', 20, 25);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
@@ -135,7 +135,7 @@ export const generateProfessionalQuote = async (data: QuoteData) => {
     doc.setTextColor(lightSlate[0], lightSlate[1], lightSlate[2]);
     const footerText = 'Este orçamento tem validade de 7 dias. O prazo de entrega começa a contar após a aprovação.';
     doc.text(footerText, pageWidth / 2, 280, { align: 'center' });
-    doc.text('3D PRINT FLOW - SOLUÇÕES EM MANUFATURA ADITIVA', pageWidth / 2, 285, { align: 'center' });
+    doc.text('THE BEGINNING - SOLUÇÕES EM MANUFATURA ADITIVA', pageWidth / 2, 285, { align: 'center' });
 
     // Save PDF
     doc.save(`Orcamento_${data.pieceName.replace(/\s+/g, '_')}.pdf`);
@@ -179,7 +179,7 @@ export const generateAnnualReportPDF = async (data: AnnualReportData) => {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('3D PRINT FLOW', 20, 22);
+    doc.text('THE BEGINNING', 20, 22);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
@@ -281,7 +281,7 @@ export const generateAnnualReportPDF = async (data: AnnualReportData) => {
 
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.text('Gerado automaticamente pelo sistema 3D Print Flow', pageWidth / 2, 285, { align: 'center' });
+        doc.text('Gerado automaticamente pelo sistema The Beginning', pageWidth / 2, 285, { align: 'center' });
         doc.text(`Página ${i} de ${pageCount}`, pageWidth - 20, 285, { align: 'right' });
     }
 

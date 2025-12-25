@@ -1,6 +1,6 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { Clock, Scale, Box, Trash2 } from 'lucide-react';
+import { Clock, Scale, Box, Trash2, BarChart3 } from 'lucide-react';
 import { Order } from '../../../types';
 import { formatDate, formatDateTime } from '../../../utils/formatters';
 
@@ -8,10 +8,11 @@ interface KanbanCardProps {
     order: Order;
     index: number;
     onClick: (order: Order) => void;
+    onViewFinancials: (order: Order) => void;
     onDelete: (id: string) => void;
 }
 
-export const KanbanCard: React.FC<KanbanCardProps & { dateField?: keyof Order }> = ({ order, index, onClick, onDelete }) => {
+export const KanbanCard: React.FC<KanbanCardProps & { dateField?: keyof Order }> = ({ order, index, onClick, onViewFinancials, onDelete }) => {
     // Timeline steps configuration
     const steps = [
         { label: 'Pedido', date: order.date, active: true, color: 'text-yellow-500' },
@@ -84,9 +85,18 @@ export const KanbanCard: React.FC<KanbanCardProps & { dateField?: keyof Order }>
                                 <span>{order.quantity} un.</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="text-xs font-bold text-slate-700">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onViewFinancials(order);
+                                    }}
+                                    className="text-xs font-bold text-slate-700 flex items-center gap-1.5 p-1.5 hover:bg-emerald-50 rounded-lg transition-all group/btn"
+                                    title="Ver Detalhamento Financeiro"
+                                >
+                                    <BarChart3 size={14} className="text-emerald-500 opacity-60 group-hover/btn:opacity-100 transition-opacity" />
                                     R$ {order.total.toFixed(2)}
-                                </div>
+                                </button>
                                 <button
                                     type="button"
                                     onMouseDown={(e) => e.stopPropagation()}

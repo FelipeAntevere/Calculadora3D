@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import {
-    Filter,
-    Calendar,
-    X,
-    ChevronDown,
-    Check,
-    Edit2,
-    Trash2,
-    Search,
-    Plus,
-    ShoppingBag,
-    Copy,
-    LayoutGrid,
-    List
+    Check, Search, Filter, Calendar, ChevronDown, ChevronUp, Edit2, Trash2, Copy, Plus, Clock, MapPin, Printer, ClipboardList, BarChart3, LayoutGrid, List, ShoppingBag, X
 } from 'lucide-react';
 import { DropResult } from '@hello-pangea/dnd';
 import { KanbanBoard } from './Kanban/KanbanBoard';
@@ -39,8 +27,10 @@ interface OrdersViewProps {
     deleteOrderHandler: (id: string) => void;
     updateOrderStatusHandler: (id: string, status: OrderStatus) => void;
     duplicateOrderHandler: (order: Order) => void;
+    handleViewFinancials: (order: Order) => void;
     getStatusStyle: (status: OrderStatus) => string;
     onNewOrder: () => void;
+    setIsFinancialDetailsOpen: (open: boolean) => void;
     isAdmin?: boolean;
 }
 
@@ -63,11 +53,13 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     filteredOrdersList,
     statusOptions,
     handleEditOrder,
+    handleViewFinancials,
     deleteOrderHandler,
     updateOrderStatusHandler,
     duplicateOrderHandler,
     getStatusStyle,
     onNewOrder,
+    setIsFinancialDetailsOpen,
     isAdmin = false
 }) => {
     const [openStatusDropdownId, setOpenStatusDropdownId] = useState<string | null>(null);
@@ -272,7 +264,9 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex flex-col items-center">
                                                     <span className="text-sm font-bold text-sky-600 dark:text-sky-400">{formatCurrency(order.total)}</span>
-                                                    <span className="text-[10px] text-slate-400 font-medium italic">{order.quantity}x {formatCurrency(order.unitValue)}</span>
+                                                    <span className="text-[10px] text-slate-400 font-medium italic">
+                                                        ({formatCurrency((order.quantity || 1) * (order.unitValue || 0))} un + {formatCurrency(order.freight || 0)} Frete)
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-center">
@@ -306,9 +300,37 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                                             </td>
                                             <td className="px-6 py-5 text-center">
                                                 <div className="flex justify-center items-center gap-1">
-                                                    <button onClick={() => duplicateOrderHandler(order)} title="Duplicar Pedido" className="p-2.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all shadow-sm active:scale-90"><Copy size={16} /></button>
-                                                    <button onClick={() => handleEditOrder(order)} title="Editar Pedido" className="p-2.5 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all shadow-sm active:scale-90"><Edit2 size={16} /></button>
-                                                    <button onClick={() => deleteOrderHandler(order.id)} title="Excluir Pedido" className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-sm active:scale-90"><Trash2 size={16} /></button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleViewFinancials(order);
+                                                        }}
+                                                        className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+                                                        title="Ver Detalhamento Financeiro"
+                                                    >
+                                                        <BarChart3 size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); duplicateOrderHandler(order); }}
+                                                        className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"
+                                                        title="Duplicar Pedido"
+                                                    >
+                                                        <Copy size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleEditOrder(order); }}
+                                                        className="p-2 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all"
+                                                        title="Editar Pedido"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); deleteOrderHandler(order.id); }}
+                                                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                        title="Excluir Pedido"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -338,6 +360,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                     statusOptions={statusOptions}
                     onDragEnd={handleDragEnd}
                     onCardClick={handleEditOrder}
+                    onViewFinancials={handleViewFinancials}
                     getStatusStyle={getStatusStyle}
                     onDelete={deleteOrderHandler}
                 />

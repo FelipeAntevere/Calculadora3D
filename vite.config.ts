@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
-          name: '3D Print Flow - Calculadora 3D',
-          short_name: '3D Print Flow',
+          name: 'The Beginning - Calculadora 3D',
+          short_name: 'The Beginning',
           description: 'Calculadora de Custos para Impressão 3D e Gestão de Fluxo',
           theme_color: '#0ea5e9',
           background_color: '#ffffff',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2, Repeat, Edit2, Check } from 'lucide-react';
 import { RecurringExpenseTemplate } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { formatCurrency } from '../../utils/formatters';
 
 interface RecurringExpensesModalProps {
@@ -26,6 +27,9 @@ export const RecurringExpensesModal: React.FC<RecurringExpensesModalProps> = ({
     monthName,
     year
 }) => {
+    // Close on ESC
+    useEscapeKey(onClose, isOpen);
+
     const [newTemplate, setNewTemplate] = useState<Partial<RecurringExpenseTemplate>>({
         description: '',
         category: '',

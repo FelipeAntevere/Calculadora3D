@@ -30,9 +30,21 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
         const maintenanceCost = calcInputs.printingTime * (calcInputs.maintenanceBudget / calcInputs.printerLifespan);
         const fixedRateCost = (calcInputs.fixedMonthlyCosts / calcInputs.productiveHoursMonth) * calcInputs.printingTime;
 
-        const subtotal = materialCost + energyCost + laborCost + maintenanceCost + fixedRateCost;
+        // Novos custos fixos/diretos por peça
+        const extrasCost = (calcInputs.packagingCost || 0) + (calcInputs.extraItemsCost || 0) + (calcInputs.otherDirectCosts || 0);
+
+        const subtotal = materialCost + energyCost + laborCost + maintenanceCost + fixedRateCost + extrasCost;
         const profit = subtotal * (calcInputs.profitMargin / 100);
-        const total = subtotal + profit;
+
+        // Cálculo do Preço Final com Taxa de Plataforma Reversa
+        // Preço sugerido antes da taxa (Custo + Lucro)
+        const priceBeforeFee = subtotal + profit;
+
+        // Se a taxa for 20%, dividimos por 0.8 para que o valor final, 
+        // quando descontado 20%, resulte no priceBeforeFee.
+        const feeDecimal = (calcInputs.platformFeePercentage || 0) / 100;
+        const total = feeDecimal < 1 ? priceBeforeFee / (1 - feeDecimal) : priceBeforeFee;
+        const platformFeeValue = total - priceBeforeFee;
 
         return {
             materialCost,
@@ -40,9 +52,11 @@ export const useCalculator = (initialInputs: PricingCalculatorInputs) => {
             laborCost,
             maintenanceCost,
             fixedRateCost,
+            extrasCost,
             subtotal,
             profit,
             total,
+            platformFeeValue,
             hourlyMaintenanceRate: calcInputs.maintenanceBudget / calcInputs.printerLifespan
         };
     }, [calcInputs]);

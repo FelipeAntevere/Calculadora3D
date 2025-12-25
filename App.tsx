@@ -43,6 +43,7 @@ const ExpensesView = lazyWithRetry(() => import('./components/Expenses/ExpensesV
 
 // Modals
 import { OrderModalV2 as OrderModal } from './components/Modals/OrderModalV2';
+import { OrderFinancialDetailsModal } from './components/Modals/OrderFinancialDetailsModal';
 import { FilamentModal } from './components/Modals/FilamentModal';
 import { PartModal } from './components/Modals/PartModal';
 import { ExpenseModal } from './components/Modals/ExpenseModal';
@@ -67,6 +68,8 @@ const AppContent: React.FC = () => {
 
   // Modal States
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false);
+  const [isFinancialDetailsOpen, setIsFinancialDetailsOpen] = useState(false);
   const [isFilamentModalOpen, setIsFilamentModalOpen] = useState(false);
   const [isPartModalOpen, setIsPartModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -192,30 +195,52 @@ const AppContent: React.FC = () => {
   const onSaveOrder = async () => {
     console.log('[onSaveOrder] Clicked. Current order state:', newOrder);
     try {
+      // Create a local copy to avoid direct mutation
+      let currentOrderData = { ...newOrder };
+
       const missing = [];
-      if (!newOrder.customer) missing.push('Cliente');
-      if (!newOrder.pieceName) missing.push('Nome da Peça');
-      if (!newOrder.material) missing.push('Material');
-      if (!newOrder.status) missing.push('Status');
-      if (!newOrder.state) missing.push('Estado');
+      if (!currentOrderData.customer) missing.push('Cliente');
+      if (!currentOrderData.pieceName) missing.push('Nome da Peça');
+      if (!currentOrderData.material) missing.push('Material');
+
+      // Default status if missing
+      if (!currentOrderData.status) {
+        currentOrderData.status = 'Pedidos';
+        console.log('[onSaveOrder] Status was missing, defaulted to "Pedidos"');
+      }
+
+      if (!currentOrderData.status) missing.push('Status');
+      // "Estado" is no longer mandatory to prevent blocks during save
+      // if (!currentOrderData.state) missing.push('Estado');
 
       if (missing.length > 0) {
         console.warn('[onSaveOrder] Validation failed. Missing:', missing);
         showToast(`⚠️ Campos obrigatórios: ${missing.join(', ')}`, 'error');
-        // If they are missing fields likely at the top, and they are at the bottom, 
-        // the modal won't scroll automatically without extra work, but we added a reset above.
         return;
       }
 
       console.log('[onSaveOrder] Validation passed. Calculating totals...');
-      const total = ((newOrder.quantity || 1) * (newOrder.unitValue || 0)) + (newOrder.freight || 0);
+      const total = ((currentOrderData.quantity || 1) * (currentOrderData.unitValue || 0)) + (currentOrderData.freight || 0);
 
-      // Guard for calcResults
-      const maintenanceRate = calcResults?.hourlyMaintenanceRate || 0.2; // fallback to 0.2 if missing
-      const maintenanceCost = (newOrder.time || 0) * (newOrder.quantity || 1) * maintenanceRate;
+      // Ensure all financial detail fields are explicitly part of the payload
+      // If they are missing from currentOrderData (e.g., old order), we try to preserve what's there
+      const payload = {
+        ...currentOrderData,
+        total,
+        // Ensure numbers are rounded/formatted to prevent DB overflow or precision issues
+        materialCost: Number((currentOrderData.materialCost || 0).toFixed(2)),
+        energyCost: Number((currentOrderData.energyCost || 0).toFixed(2)),
+        laborCost: Number((currentOrderData.laborCost || 0).toFixed(2)),
+        maintenanceCost: Number((currentOrderData.maintenanceCost || 0).toFixed(2)),
+        fixedRateCost: Number((currentOrderData.fixedRateCost || 0).toFixed(2)),
+        extrasCost: Number((currentOrderData.extrasCost || 0).toFixed(2)),
+        platformFeeValue: Number((currentOrderData.platformFeeValue || 0).toFixed(2)),
+        profitMarginValue: Number((currentOrderData.profitMarginValue || 0).toFixed(2)),
+        filamentCostPerKg: Number((currentOrderData.filamentCostPerKg || 0).toFixed(2)),
+        laborHourValue: Number((currentOrderData.laborHourValue || 0).toFixed(2))
+      };
 
-      const payload = { ...newOrder, total, maintenanceCost };
-      console.log('[onSaveOrder] Saving payload:', payload);
+      console.log('[onSaveOrder] Saving payload to database:', payload);
 
       await saveOrder(payload);
 
@@ -229,7 +254,7 @@ const AppContent: React.FC = () => {
   };
 
   const onGenerateSummary = () => {
-    const text = "📊 *RESUMO DE PRECIFICAÇÃO - 3D PRINT FLOW*\n" +
+    const text = "📊 *RESUMO DE PRECIFICAÇÃO - THE BEGINNING*\n" +
       "---------------------------------------\n" +
       "⏱️ *Tempo de Impressão:* " + formatDuration(calcInputs.printingTime) + "\n" +
       "⚖️ *Peso Estimado:* " + calcInputs.partWeight + "g (+ " + calcInputs.filamentLossPercentage + "% perda)\n" +
@@ -239,7 +264,10 @@ const AppContent: React.FC = () => {
       "• Energia: " + formatCurrency(calcResults.energyCost) + "\n" +
       "• Mão de Obra: " + formatCurrency(calcResults.laborCost) + "\n" +
       "• Manutenção: " + formatCurrency(calcResults.maintenanceCost) + "\n" +
+      "• Embalagem/Extras: " + formatCurrency(calcResults.extrasCost) + "\n" +
       "• Custos Fixos: " + formatCurrency(calcResults.fixedRateCost) + "\n\n" +
+      "📊 *RESUMO DE VENDAS:*\n" +
+      "• Taxas de Plataforma (" + (calcInputs.platformFeePercentage || 0) + "%): " + formatCurrency(calcResults.platformFeeValue) + "\n\n" +
       "💵 *CUSTO TOTAL DE PRODUÇÃO:* " + formatCurrency(calcResults.subtotal) + "\n" +
       "📈 *MARGEM APLICADA:* " + calcInputs.profitMargin + "% (" + formatCurrency(calcResults.profit) + ")\n\n" +
       "💎 *VALOR FINAL SUGERIDO:* " + formatCurrency(calcResults.total) + "\n" +
@@ -307,11 +335,11 @@ const AppContent: React.FC = () => {
       <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-[95rem] mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="bg-[#0ea5e9] p-2.5 rounded-2xl shadow-lg shadow-sky-100 transform -rotate-3 hover:rotate-0 transition-transform">
+            <div className="bg-[#0ea5e9] p-2.5 rounded-2xl shadow-lg shadow-sky-100">
               <Printer className="text-white w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-xl font-black text-[#0f172a] tracking-tighter leading-none">3D Print Flow</h1>
+              <h1 className="text-xl font-black text-[#0f172a] tracking-tighter leading-none">The Beginning</h1>
               <span className="text-[9px] font-black text-sky-500 uppercase tracking-[0.4em] mt-1 pr-1">Industrial Edition</span>
             </div>
           </div>
@@ -441,7 +469,14 @@ const AppContent: React.FC = () => {
                       setNewOrder(order);
                       setEditingOrderId(order.id);
                       setIsOrderModalOpen(true);
+                      setIsFinancialDetailsOpen(false); // Reset by default
                     }}
+                    handleViewFinancials={(order) => {
+                      setNewOrder(order);
+                      setEditingOrderId(order.id);
+                      setIsFinancialModalOpen(true);
+                    }}
+                    setIsFinancialDetailsOpen={setIsFinancialDetailsOpen}
                     deleteOrderHandler={removeOrder}
                     updateOrderStatusHandler={changeOrderStatus}
                     duplicateOrderHandler={(order) => {
@@ -576,6 +611,14 @@ const AppContent: React.FC = () => {
         onSave={onSaveOrder}
         materialOptions={materialOptions}
         statusOptions={statusOptions}
+        isFinancialDetailsOpen={isFinancialDetailsOpen}
+        setIsFinancialDetailsOpen={setIsFinancialDetailsOpen}
+      />
+
+      <OrderFinancialDetailsModal
+        isOpen={isFinancialModalOpen}
+        onClose={() => setIsFinancialModalOpen(false)}
+        order={editingOrderId ? orders.find(o => o.id === editingOrderId) || null : null}
       />
 
       <FilamentModal
@@ -587,9 +630,15 @@ const AppContent: React.FC = () => {
         setFilamentQuantity={setFilamentQuantity}
         editingFilamentId={editingFilamentId}
         onSave={async () => {
-          await saveFilament(newFilament, filamentQuantity);
-          setIsFilamentModalOpen(false);
-          setFilamentQuantity(1); // Reset for next time
+          try {
+            await saveFilament(newFilament, filamentQuantity);
+            setIsFilamentModalOpen(false);
+            setFilamentQuantity(1); // Reset for next time
+            showToast('Filamento salvo com sucesso!', 'success');
+          } catch (error) {
+            console.error('[saveFilament] Error:', error);
+            showToast(`Erro ao salvar filamento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
+          }
         }}
         materialOptions={materialOptions}
       />
@@ -601,8 +650,14 @@ const AppContent: React.FC = () => {
         setPart={setNewPart}
         editingPartId={editingPartId}
         onSave={async () => {
-          await savePart(newPart);
-          setIsPartModalOpen(false);
+          try {
+            await savePart(newPart);
+            setIsPartModalOpen(false);
+            showToast('Peça salva com sucesso!', 'success');
+          } catch (error) {
+            console.error('[savePart] Error:', error);
+            showToast(`Erro ao salvar peça: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
+          }
         }}
         categoryOptions={partCategoryOptions}
       />
@@ -615,8 +670,14 @@ const AppContent: React.FC = () => {
         editingExpenseId={editingExpenseId}
         onSave={async (e) => {
           e.preventDefault();
-          await saveExpense(newExpense);
-          setIsExpenseModalOpen(false);
+          try {
+            await saveExpense(newExpense);
+            setIsExpenseModalOpen(false);
+            showToast('Despesa salva com sucesso!', 'success');
+          } catch (error) {
+            console.error('[saveExpense] Error:', error);
+            showToast(`Erro ao salvar despesa: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
+          }
         }}
       />
 
@@ -719,7 +780,7 @@ const AppContent: React.FC = () => {
 
       <footer className="max-w-[95rem] mx-auto px-6 text-center mt-20 pb-16 pt-10 border-t border-slate-100">
         <div className="flex flex-col items-center gap-4">
-          <p className="text-slate-300 text-[10px] font-black tracking-[0.4em] uppercase">Built with Precision &bull; 3D Print Flow</p>
+          <p className="text-slate-300 text-[10px] font-black tracking-[0.4em] uppercase">Built with Precision &bull; The Beginning</p>
           <div className="flex items-center gap-6">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sistemas Conectados</span>

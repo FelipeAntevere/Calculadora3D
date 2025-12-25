@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Expense } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface ExpenseModalProps {
     isOpen: boolean;
@@ -23,18 +24,23 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
     editingExpenseId,
     onSave
 }) => {
+    // Close on ESC
+    useEscapeKey(onClose, isOpen);
+
+    const [localExpense, setLocalExpense] = useState<Partial<Expense>>(expense);
+
     const formatInitialValue = (val?: number) => {
         if (!val) return '';
         return val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     };
 
-    const [localAmount, setLocalAmount] = React.useState(formatInitialValue(expense.amount));
+    const [localAmount, setLocalAmount] = useState(formatInitialValue(expense.amount));
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             setLocalAmount(formatInitialValue(expense.amount));
         }
-    }, [isOpen, editingExpenseId]); // Reset when opening or switching expense context
+    }, [isOpen, editingExpenseId, expense.amount]); // Added expense.amount to dependencies
 
     if (!isOpen) return null;
 
