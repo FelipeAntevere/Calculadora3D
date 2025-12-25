@@ -114,7 +114,7 @@ export const PartsView: React.FC<PartsViewProps> = ({
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Componente</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Categoria</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Em Estoque</th>
-                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Custo Unitário</th>
+                                <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Custo Total</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Data Compra</th>
                                 <th className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Ações</th>
                             </tr>
@@ -139,7 +139,10 @@ export const PartsView: React.FC<PartsViewProps> = ({
                                             </span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(part.unitCost)}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(part.unitCost + (part.freight || 0))}</span>
+                                                <span className="text-[10px] text-slate-400 font-medium italic">({formatCurrency(part.unitCost)} un + {formatCurrency(part.freight || 0)} Frete)</span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <span className="text-sm font-semibold text-slate-900 dark:text-white">

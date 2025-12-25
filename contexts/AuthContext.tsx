@@ -46,44 +46,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         let mounted = true;
 
-        // Initial Session Check
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!mounted) return;
-
-            setSession(session);
-            setUser(session?.user ?? null);
-
-            if (session?.user) {
-                fetchUserRole(session.user.id).finally(() => {
-                    if (mounted) setIsLoading(false);
-                });
-            } else {
+        // Safety Timeout: Force loading to false after 7 seconds if Supabase doesn't respond
+        const safetyTimeout = setTimeout(() => {
+            if (mounted && isLoading) {
+                console.warn('AuthContext: Tempo de carregamento excedido (timeout). Forçando encerramento do loader.');
                 setIsLoading(false);
             }
-        });
+        }, 7000);
+
+        const initAuth = async () => {
+            try {
+                // Check current session
+                const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError) throw sessionError;
+
+                if (!mounted) return;
+
+                setSession(initialSession);
+                setUser(initialSession?.user ?? null);
+
+                if (initialSession?.user) {
+                    await fetchUserRole(initialSession.user.id);
+                }
+            } catch (err) {
+                console.error('AuthContext: Erro na inicialização da sessão:', err);
+                if (mounted) {
+                    setUser(null);
+                    setSession(null);
+                    setUserRole(null);
+                }
+            } finally {
+                if (mounted) {
+                    setIsLoading(false);
+                    clearTimeout(safetyTimeout);
+                }
+            }
+        };
+
+        initAuth();
 
         // Auth State Listener
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
+
+            console.log(`AuthContext: Evento de Auth: ${event}`);
 
             setSession(session);
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                // Only fetch role if we don't have it or if user changed (though user change implies session change usually)
-                // Ideally we fetch every time to be safe on re-logins
                 await fetchUserRole(session.user.id);
             } else {
                 setUserRole(null);
             }
+
+            // On sign in/out events we should also stop loading if it was somehow triggered
             setIsLoading(false);
+            clearTimeout(safetyTimeout);
         });
 
         return () => {
             mounted = false;
             subscription.unsubscribe();
+            clearTimeout(safetyTimeout);
         };
     }, []);
 

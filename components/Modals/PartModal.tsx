@@ -100,14 +100,26 @@ export const PartModal: React.FC<PartModalProps> = ({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Data da Compra</label>
+                            <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Frete (R$)</label>
                             <input
-                                type="date"
-                                value={part.purchaseDate || ''}
-                                onChange={(e) => setPart({ ...part, purchaseDate: e.target.value })}
-                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-slate-200 dark:[color-scheme:dark]"
+                                type="number"
+                                step="0.01"
+                                value={part.freight || ''}
+                                onChange={(e) => setPart({ ...part, freight: parseFloat(e.target.value) || 0 })}
+                                className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-white"
+                                placeholder="0.00"
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">Data da Compra</label>
+                        <input
+                            type="date"
+                            value={part.purchaseDate || ''}
+                            onChange={(e) => setPart({ ...part, purchaseDate: e.target.value })}
+                            className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0ea5e9]/10 dark:focus:ring-[#0ea5e9]/20 outline-none font-medium text-slate-700 dark:text-slate-200 dark:[color-scheme:dark]"
+                        />
                     </div>
 
                     <div>

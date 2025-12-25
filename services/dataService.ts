@@ -429,6 +429,7 @@ export const fetchParts = async (): Promise<ReplacementPart[]> => {
   return (data || []).map(p => ({
     ...p,
     unitCost: p.unit_cost,
+    freight: p.freight,
     purchaseDate: p.purchase_date
   })) as ReplacementPart[];
 };
@@ -438,10 +439,12 @@ export const upsertPart = async (part: Partial<ReplacementPart>) => {
     ...part,
     // user_id: user.id,
     unit_cost: part.unitCost,
+    freight: part.freight || 0,
     purchase_date: part.purchaseDate || null
   };
 
   delete (partData as any).unitCost;
+  delete (partData as any).freight;
   delete (partData as any).purchaseDate;
 
   const { data, error } = await supabase
@@ -455,6 +458,7 @@ export const upsertPart = async (part: Partial<ReplacementPart>) => {
   return {
     ...data,
     unitCost: data.unit_cost,
+    freight: data.freight,
     purchaseDate: data.purchase_date
   } as ReplacementPart;
 };

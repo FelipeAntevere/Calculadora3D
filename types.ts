@@ -26,6 +26,7 @@ export interface ReplacementPart {
   brand: string;
   quantity: number;
   unitCost: number;
+  freight: number;
   purchaseDate: string;
   notes?: string;
   created_at?: string;

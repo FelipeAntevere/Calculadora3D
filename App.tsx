@@ -245,12 +245,53 @@ const AppContent: React.FC = () => {
     setIsSummaryModalOpen(true);
   };
 
+  // UI Local States
+  const [showSlowLoadingMessage, setShowSlowLoadingMessage] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (authLoading) {
+      timer = setTimeout(() => {
+        setShowSlowLoadingMessage(true);
+      }, 4000);
+    } else {
+      setShowSlowLoadingMessage(false);
+    }
+    return () => clearTimeout(timer);
+  }, [authLoading]);
+
   // UI Helper functions
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-10 h-10 text-sky-500 animate-spin" />
-        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Autenticando...</p>
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-6 p-6">
+        <div className="relative">
+          <Loader2 className="w-12 h-12 text-sky-500 animate-spin" />
+          <div className="absolute inset-0 blur-xl bg-sky-200/50 -z-10 animate-pulse"></div>
+        </div>
+
+        <div className="flex flex-col items-center gap-2 text-center max-w-xs transition-all animate-in fade-in duration-1000">
+          <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">
+            {showSlowLoadingMessage ? 'Estabelecendo conexão estável...' : 'Autenticando...'}
+          </p>
+
+          {showSlowLoadingMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <p className="text-slate-400 text-xs leading-relaxed">
+                A resposta do servidor está demorando um pouco mais que o esperado.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-white border border-slate-200 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors shadow-sm"
+              >
+                Tentar Recarregar
+              </button>
+            </motion.div>
+          )}
+        </div>
       </div>
     );
   }
@@ -451,7 +492,7 @@ const AppContent: React.FC = () => {
                     <PartsView
                       replacementParts={parts}
                       onNewPart={() => {
-                        setNewPart({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, purchaseDate: new Date().toISOString().split('T')[0] });
+                        setNewPart({ name: '', category: 'Outros', brand: '', quantity: 1, unitCost: 0, freight: 0, purchaseDate: new Date().toISOString().split('T')[0] });
                         setEditingPartId(null);
                         setIsPartModalOpen(true);
                       }}
