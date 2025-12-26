@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Order, OrderStatus } from '../types';
 import { fetchOrders, upsertOrder, deleteOrder, updateOrderStatus } from '../services/dataService';
+import { supabase } from '../services/supabase';
 
 /**
  * Hook for managing orders data and operations.
@@ -24,6 +25,32 @@ export const useOrders = (user: any) => {
             setIsLoading(false);
         }
     }, [user]);
+
+    // Realtime subscription
+    useEffect(() => {
+        if (!user) return;
+
+        console.log('Setting up Realtime subscription for orders...');
+        const subscription = supabase
+            .channel('orders-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'orders'
+                },
+                () => {
+                    console.log('Realtime update received for orders!');
+                    loadOrders();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [user, loadOrders]);
 
     /**
      * Saves an order (creates or updates).

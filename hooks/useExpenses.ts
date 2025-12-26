@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Expense } from '../types';
 import { fetchExpenses, upsertExpense, deleteExpense, updateExpenseStatus } from '../services/dataService';
+import { supabase } from '../services/supabase';
 
 /**
  * Hook for managing business expenses data and operations.
@@ -45,6 +46,32 @@ export const useExpenses = (user: any) => {
             setIsLoading(false);
         }
     }, [user]);
+
+    // Realtime subscription
+    useEffect(() => {
+        if (!user) return;
+
+        console.log('Setting up Realtime subscription for expenses...');
+        const subscription = supabase
+            .channel('expenses-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'expenses'
+                },
+                () => {
+                    console.log('Realtime update received for expenses!');
+                    loadExpenses();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [user, loadExpenses]);
 
     /**
      * Saves an expense (creates or updates).
