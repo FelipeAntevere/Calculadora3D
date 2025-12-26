@@ -49,7 +49,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
         <div className="w-full">
             {label && (
                 <label className="block text-xs font-bold text-slate-900 dark:text-slate-300 mb-2 uppercase tracking-tight">
-                    {label}
+                    {label} {required && <span className="text-red-500 ml-0.5">*</span>}
                 </label>
             )}
             <div className="relative">

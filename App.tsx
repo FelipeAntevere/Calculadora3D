@@ -199,19 +199,24 @@ const AppContent: React.FC = () => {
       let currentOrderData = { ...newOrder };
 
       const missing = [];
-      if (!currentOrderData.customer) missing.push('Cliente');
-      if (!currentOrderData.pieceName) missing.push('Nome da Peça');
-      if (!currentOrderData.material) missing.push('Material');
+      if (!currentOrderData.customer?.trim()) missing.push('Cliente');
+      if (!currentOrderData.pieceName?.trim()) missing.push('Nome da Peça');
+      if (!currentOrderData.material?.trim()) missing.push('Material');
+      if (!currentOrderData.color?.trim()) missing.push('Cor');
+      if (!currentOrderData.state?.trim()) missing.push('Estado');
+
+      if (!currentOrderData.quantity || currentOrderData.quantity <= 0) missing.push('Quantidade');
+      if (!currentOrderData.weight || currentOrderData.weight <= 0) missing.push('Peso Aproximado');
+      if (currentOrderData.time === undefined || currentOrderData.time <= 0) missing.push('Tempo de Impressão');
+      if (currentOrderData.unitCost === undefined || currentOrderData.unitCost === null) missing.push('Custo Unitário');
+      if (currentOrderData.unitValue === undefined || currentOrderData.unitValue === null) missing.push('Venda Unitário');
+      if (!currentOrderData.date) missing.push('Data do Pedido');
 
       // Default status if missing
       if (!currentOrderData.status) {
         currentOrderData.status = 'Pedidos';
         console.log('[onSaveOrder] Status was missing, defaulted to "Pedidos"');
       }
-
-      if (!currentOrderData.status) missing.push('Status');
-      // "Estado" is no longer mandatory to prevent blocks during save
-      // if (!currentOrderData.state) missing.push('Estado');
 
       if (missing.length > 0) {
         console.warn('[onSaveOrder] Validation failed. Missing:', missing);

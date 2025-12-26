@@ -87,7 +87,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                 >
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cliente</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cliente <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="text"
                                 placeholder="Nome do cliente"
@@ -97,7 +97,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Nome da Peça</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Nome da Peça <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="text"
                                 placeholder="Ex: Suporte de Fone"
@@ -107,7 +107,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             />
                         </div>
                         <div className="relative">
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Material</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Material <span className="text-red-500 ml-1">*</span></label>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsOrderMaterialDropdownOpen(!isOrderMaterialDropdownOpen)}
@@ -133,7 +133,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cor</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Cor <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="text"
                                 placeholder="Ex: Preto Matte"
@@ -143,7 +143,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             />
                         </div>
                         <div className="relative">
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Estado</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Estado <span className="text-red-500 ml-1">*</span></label>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
@@ -169,7 +169,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Quantidade</label>
+                            <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Quantidade <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="number"
                                 value={order.quantity ?? ''}
@@ -217,7 +217,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                         <h4 className="text-base font-black text-slate-800 dark:text-white tracking-tight">Detalhes Técnicos e Financeiros</h4>
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Peso Aproximado (g)</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Peso Aproximado (g) <span className="text-red-500 ml-1">*</span></label>
                                 <input
                                     type="number"
                                     step="any"
@@ -229,7 +229,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Tempo de Impressão Unitário</label>
+                                <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Tempo de Impressão Unitário <span className="text-red-500 ml-1">*</span></label>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 relative">
                                         <input
@@ -270,11 +270,13 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                                 label="Custo Unitário"
                                 value={order.unitCost}
                                 onChange={(val) => setOrder({ ...order, unitCost: val })}
+                                required
                             />
                             <CurrencyInput
                                 label="Venda Unitário"
                                 value={order.unitValue}
                                 onChange={(val) => setOrder({ ...order, unitValue: val })}
+                                required
                             />
                             <CurrencyInput
                                 label="Frete"
@@ -369,7 +371,7 @@ export const OrderModalV2: React.FC<OrderModalProps> = ({
                     )}
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Data do Pedido</label>
+                        <label className="block text-sm font-bold text-slate-900 dark:text-slate-300 mb-2">Data do Pedido <span className="text-red-500 ml-1">*</span></label>
                         <input
                             type="datetime-local"
                             value={toLocalInputDate(order.date || '')}
